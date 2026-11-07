@@ -1,6 +1,6 @@
 # Nixie Countdown
 
-A countdown timer source that displays the time on photographic Nixie tubes. Works on Windows, macOS and Linux (only tested on Debian 13).
+A countdown timer source that displays the time on photographic Nixie tubes, for Windows, macOS and Linux. See [Tested platforms](#tested-platforms).
 
 This is a third-party plugin for OBS Studio.
 
@@ -27,6 +27,17 @@ This is a third-party plugin for OBS Studio.
 ## Requirements
 
 OBS Studio 31 or newer for the downloadable packages. Building from source also works with OBS 30 (tested with 30.2.3 on Debian 13).
+
+## Tested platforms
+
+| Platform | Status |
+| --- | --- |
+| Debian 13, OBS 30.2.3 (built from source) | Tested |
+| Windows 10 | Built by CI; testing underway |
+| macOS | Built by CI, **not yet tested on a Mac** |
+| Ubuntu 24.04 | Built by CI, not yet tested |
+
+**macOS testers wanted.** I don't have a Mac, so the macOS package has never been run on one. If you use OBS on macOS, please try it and report back on the [macOS testing issue](../../issues/2). It lists what to check, and a report that everything works is just as helpful as a bug report.
 
 ## Download and install
 
