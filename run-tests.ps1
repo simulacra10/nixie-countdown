@@ -277,12 +277,24 @@ function Get-ReportUrl([string]$Output) {
 # Browsers and GitHub reject very long links; trim the output if needed and
 # put the full text on the clipboard.
 $url = Get-ReportUrl $testOutput
+$clipboardUsed = $false
 if ($url.Length -gt 7500) {
     Set-Clipboard -Value $testOutput
+    $clipboardUsed = $true
     $failLines = ($script:Log | Where-Object { $_ -match 'FAIL|checks,' }) -join "`n"
     $url = Get-ReportUrl ("(Output shortened. The full output is on your clipboard; paste it here.)`n" + $failLines)
-    Write-Host '  The output was too long for a link, so it is on your clipboard. Paste it into the Output box.'
 }
+
+# The browser covers this window once it opens, so explain first and wait.
+Write-Host ''
+Write-Host '  What to do in the browser:' -ForegroundColor White
+if ($clipboardUsed) {
+    Write-Host '    1. Click in the Output box and press Ctrl+V. This adds the full test output.'
+    Write-Host '    2. Check the report, then click "Submit new issue".'
+} else {
+    Write-Host '    1. Check the report, then click "Submit new issue".'
+}
+[void](Read-Host '  Press Enter to open the report')
 Start-Process $url
-Write-Host '  Opened in your browser. Check the report and click "Submit new issue". Thank you!'
+Write-Host '  Opened in your browser. Thank you for running the tests!'
 exit $exitCode

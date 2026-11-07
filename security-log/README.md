@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (10)](nixie-sec-2026-11-07-10.json): no findings
+
+Audit of the change that shows the browser steps before the report opens, with a "Press Enter" pause, in both Windows scripts. Only console text and its order changed.
+
 ### [2026-11-07 (9)](nixie-sec-2026-11-07-9.json): no findings
 
 Audit of the fix that lets `verify-windows.ps1` run again in the same PowerShell window: the image helper's type name now comes from a hash of its code, so a re-run reuses it instead of failing.

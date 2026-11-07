@@ -824,7 +824,6 @@ if ($url.Length -gt 7500) {
     $short = ($script:Results | Where-Object { $_.status -ne 'pass' } | ForEach-Object {
             '[{0}] {1} - {2}' -f $_.status.ToUpper(), $_.name, $_.details }) -join "`n"
     $url = Get-ReportUrl ("(Shortened to the checks that did not pass. The full list is on your clipboard; paste it here.)`n" + $short)
-    Write-Host '  The output was too long for a link, so it is on your clipboard. Paste it into the Output box.'
 }
 
 # Put the screenshot image on the clipboard: Ctrl+V in the report uploads it.
@@ -841,15 +840,27 @@ if ($sheet -and -not $clipboardUsed -and [Threading.Thread]::CurrentThread.Apart
     }
 }
 
-Start-Process $url
+# The browser covers this window once it opens, so explain first and wait.
 Write-Host ''
-Write-Host '  The report is open in your browser.' -ForegroundColor White
-if ($imageOnClipboard) {
-    Write-Host '  To add the screenshots: click in the Notes box and press Ctrl+V.'
-} elseif ($sheet) {
-    Start-Process explorer.exe -ArgumentList "/select,`"$sheet`""
-    Write-Host '  To add the screenshots: drag nixie-verify-screenshots.png from the File Explorer window'
-    Write-Host '  that just opened into the Notes box.'
+Write-Host '  What to do in the browser:' -ForegroundColor White
+$step = 1
+if ($clipboardUsed) {
+    Write-Host "    $step. Click in the Output box and press Ctrl+V. This adds the full list of checks."
+    $step++
 }
-Write-Host '  Then check the report and click "Submit new issue". Thank you!'
+if ($imageOnClipboard) {
+    Write-Host "    $step. Click in the Notes box and press Ctrl+V. This adds the screenshots."
+    $step++
+} elseif ($sheet) {
+    Write-Host "    $step. A File Explorer window opens too. Drag nixie-verify-screenshots.png from it"
+    Write-Host '       into the Notes box. This adds the screenshots.'
+    $step++
+}
+Write-Host "    $step. Check the report, then click `"Submit new issue`"."
+[void](Read-Host '  Press Enter to open the report')
+Start-Process $url
+if (-not $imageOnClipboard -and $sheet) {
+    Start-Process explorer.exe -ArgumentList "/select,`"$sheet`""
+}
+Write-Host '  Opened in your browser. Thank you for testing!'
 exit $exitCode
