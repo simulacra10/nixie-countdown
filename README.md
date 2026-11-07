@@ -152,7 +152,7 @@ The verification script checks a real OBS installation with the plugin installed
 - the countdown reaches zero and blinks
 - the hotkeys work
 
-It saves screenshots to a report zip on your Desktop, then offers to open a pre-filled **Test report** issue in your browser and shows the zip in File Explorer so you can drag it in. Nothing is posted until you check the report and click Submit. Your own scenes and settings are left alone: the test runs in a temporary scene collection that is deleted afterwards, and the WebSocket settings are restored when OBS closes.
+At the end it offers to open a pre-filled **Test report** issue in your browser, with the results and the plugin's lines from the OBS log already filled in. It also combines the screenshots into one image and puts it on the clipboard, so pressing Ctrl+V in the report attaches it. Nothing is posted until you check the report and click Submit. A copy of everything stays in a report folder on your Desktop. Your own scenes and settings are left alone: the test runs in a temporary scene collection that is deleted afterwards, and the WebSocket settings are restored when OBS closes.
 
 | Platform | Script |
 | --- | --- |
@@ -167,7 +167,7 @@ powershell -ExecutionPolicy Bypass -File .\verify-windows.ps1
 
 Near the end, the script asks you one question, whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
 
-The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the OBS log lines that mention the plugin. Look through `obs-log-nixie.txt` before attaching the zip to a public issue: if you have set a custom tube images folder, its path (which can include your Windows user name) appears there.
+The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the plugin's own lines from the OBS log. Read it in the browser before submitting: if you have set a custom tube images folder that couldn't be loaded, its path (which can include your Windows user name) appears in those log lines, and you can delete it there.
 
 ## Planned
 

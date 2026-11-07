@@ -5,9 +5,10 @@ Verifies an installed Nixie Countdown plugin on Windows and writes a report.
 .DESCRIPTION
 Starts OBS, drives a Nixie Countdown source through OBS's built-in remote
 control interface (obs-websocket), checks sizes, buttons, hotkeys, the
-countdown and the blink at zero, takes screenshots, and writes a report folder
-and zip to the Desktop. At the end it opens a pre-filled "Test report" issue in
-your browser; nothing is posted until you review it and click Submit there.
+countdown and the blink at zero, and takes screenshots into a report folder on
+the Desktop. At the end it opens a pre-filled "Test report" issue in your
+browser and puts one image of all the screenshots on the clipboard to paste in;
+nothing is posted until you review it and click Submit there.
 
 Your own setup is left alone: the test runs in a temporary scene collection,
 which is deleted afterwards, and the WebSocket settings are restored exactly.
@@ -98,6 +99,7 @@ Add-Type -AssemblyName System.Drawing
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -128,6 +130,39 @@ public class NixieImage {
             if (Bgra[i + 3] > 16 && Bgra[i] + Bgra[i + 1] + Bgra[i + 2] > 60)
                 visible++;
         return (double)visible / (Width * Height);
+    }
+
+    // Combine screenshots into one labeled grid image.
+    public static void SaveSheet(string[] paths, string[] labels, string outPath, int columns, int tileWidth) {
+        const int pad = 8, labelHeight = 20;
+        var images = new Image[paths.Length];
+        int tileHeight = 1;
+        for (int i = 0; i < paths.Length; i++) {
+            // Copy into a new bitmap: GDI+ needs the source stream for the image's lifetime.
+            using (var fs = new FileStream(paths[i], FileMode.Open, FileAccess.Read))
+            using (var loaded = Image.FromStream(fs))
+                images[i] = new Bitmap(loaded);
+            tileHeight = Math.Max(tileHeight, images[i].Height * tileWidth / Math.Max(1, images[i].Width));
+        }
+        int rows = (paths.Length + columns - 1) / columns;
+        using (var sheet = new Bitmap(pad + columns * (tileWidth + pad), pad + rows * (labelHeight + tileHeight + pad)))
+        using (var g = Graphics.FromImage(sheet))
+        using (var font = new Font("Segoe UI", 9f))
+        using (var text = new SolidBrush(Color.Gainsboro))
+        using (var tileBack = new SolidBrush(Color.Black)) {
+            g.Clear(Color.FromArgb(40, 40, 40));
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            for (int i = 0; i < images.Length; i++) {
+                int x = pad + (i % columns) * (tileWidth + pad);
+                int y = pad + (i / columns) * (labelHeight + tileHeight + pad);
+                int h = images[i].Height * tileWidth / Math.Max(1, images[i].Width);
+                g.DrawString(labels[i], font, text, x, y + 2);
+                g.FillRectangle(tileBack, x, y + labelHeight, tileWidth, tileHeight);
+                g.DrawImage(images[i], new Rectangle(x, y + labelHeight, tileWidth, h));
+                images[i].Dispose();
+            }
+            sheet.Save(outPath, ImageFormat.Png);
+        }
     }
 
     // Fraction of pixels where any channel differs by more than 40.
@@ -225,24 +260,32 @@ function Connect-Obs([int]$Port, [string]$Password, [int]$TimeoutSeconds = 90) {
     Assert-True ($identified.op -eq 2) 'OBS rejected the connection (wrong password?)'
 }
 
+# obs-websocket accepts connections before OBS has finished loading and
+# answers "not ready" (status 207) until then, so retry for up to 2 minutes.
+$NotReady = 207
 function Invoke-Obs([string]$Type, $Data) {
-    $script:RequestCounter++
-    $id = "req-$($script:RequestCounter)"
-    $request = @{ requestType = $Type; requestId = $id }
-    if ($null -ne $Data) { $request.requestData = $Data }
-    Send-ObsMessage @{ op = 6; d = $request }
+    $deadline = (Get-Date).AddSeconds(120)
     while ($true) {
-        $msg = Receive-ObsMessage
-        if ($msg.op -eq 7 -and $msg.d.requestId -eq $id) {
-            $status = $msg.d.requestStatus
-            if (-not $status.result) {
-                $comment = ''
-                if ($status.PSObject.Properties['comment']) { $comment = $status.comment }
-                throw "OBS request $Type failed (code $($status.code)) $comment"
-            }
+        $script:RequestCounter++
+        $id = "req-$($script:RequestCounter)"
+        $request = @{ requestType = $Type; requestId = $id }
+        if ($null -ne $Data) { $request.requestData = $Data }
+        Send-ObsMessage @{ op = 6; d = $request }
+        do {
+            $msg = Receive-ObsMessage
+        } while (-not ($msg.op -eq 7 -and $msg.d.requestId -eq $id))
+        $status = $msg.d.requestStatus
+        if ($status.result) {
             if ($msg.d.PSObject.Properties['responseData']) { return $msg.d.responseData }
             return $null
         }
+        if ($status.code -eq $NotReady -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Milliseconds 500
+            continue
+        }
+        $comment = ''
+        if ($status.PSObject.Properties['comment']) { $comment = $status.comment }
+        throw "OBS request $Type failed (code $($status.code)) $comment"
     }
 }
 
@@ -420,6 +463,7 @@ try {
     if (-not $script:Ws) { throw 'Could not connect to OBS; see the result above.' }
 
     Test-Step "OBS is version $MinObsVersion or newer" {
+        Assert-True ([bool]$report.obs_version) 'OBS version unknown (no connection)'
         $parsed = [version](($report.obs_version -split '[^0-9.]')[0])
         Assert-True ($parsed -ge $MinObsVersion) "found $($report.obs_version)"
         $report.obs_version
@@ -631,6 +675,7 @@ Write-Host ''
 Write-Host 'OBS log'
 $logDir = Join-Path $env:APPDATA 'obs-studio\logs'
 $log = $null
+$pluginLogLines = @()
 if (Test-Path $logDir) {
     $log = Get-ChildItem $logDir -Filter '*.txt' | Where-Object { $_.LastWriteTime -ge $launchTime.AddSeconds(-5) } |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -638,6 +683,9 @@ if (Test-Path $logDir) {
 if ($log) {
     $lines = @(Get-Content $log.FullName | Where-Object { $_ -match 'nixie' })
     $lines | Set-Content (Join-Path $OutputDir 'obs-log-nixie.txt')
+    # Only the plugin's own lines go into the report text, without timestamps.
+    $pluginLogLines = @($lines | Where-Object { $_ -match '\[obs-nixie-countdown\]' } |
+        ForEach-Object { $_ -replace '^\d{2}:\d{2}:\d{2}\.\d{3}:\s*', '' })
 
     Test-Step 'Plugin reports it loaded' {
         $loaded = $lines | Where-Object { $_ -match 'plugin loaded successfully \(version ([^)]+)\)' } | Select-Object -First 1
@@ -665,12 +713,18 @@ if ($log) {
 
 $failed = @($script:Results | Where-Object { $_.status -eq 'fail' }).Count
 $passed = @($script:Results | Where-Object { $_.status -eq 'pass' }).Count
-$report.summary = [ordered]@{ passed = $passed; failed = $failed; total = $script:Results.Count }
+$manual = @($script:Results | Where-Object { $_.status -eq 'manual' }).Count
+$report.summary = [ordered]@{ passed = $passed; failed = $failed; tester_confirmed = $manual; total = $script:Results.Count }
 $report | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 (Join-Path $OutputDir 'report.json')
 
-$zip = "$OutputDir.zip"
-if (Test-Path $zip) { Remove-Item $zip }
-Compress-Archive -Path (Join-Path $OutputDir '*') -DestinationPath $zip
+# One image with every screenshot, so testers attach a single file.
+$sheet = $null
+$shots = @(Get-ChildItem $ShotsDir -Filter '*.png' | Sort-Object Name)
+if ($shots.Count -gt 0) {
+    $sheet = Join-Path $OutputDir 'nixie-verify-screenshots.png'
+    [NixieImage]::SaveSheet([string[]]@($shots | ForEach-Object { $_.FullName }),
+        [string[]]@($shots | ForEach-Object { $_.BaseName }), $sheet, 4, 300)
+}
 
 Write-Host ''
 if ($failed -eq 0) {
@@ -678,7 +732,7 @@ if ($failed -eq 0) {
 } else {
     Write-Host "$failed of $($script:Results.Count) checks failed." -ForegroundColor Red
 }
-Write-Host "Report: $zip"
+Write-Host "Report folder: $OutputDir"
 $exitCode = 0
 if ($failed -ne 0) { $exitCode = 1 }
 
@@ -689,8 +743,14 @@ if ($failed -ne 0) { $exitCode = 1 }
 # In CI there is nobody to answer questions.
 if ($NoSubmit -or $env:CI) { exit $exitCode }
 
-$result = "All passed ($passed of $($script:Results.Count) checks)"
-if ($failed -ne 0) { $result = "Some failed ($failed of $($script:Results.Count) checks failed)" }
+$automated = $passed + $failed
+if ($failed -eq 0) {
+    $result = "All passed ($passed automated checks"
+    if ($manual -gt 0) { $result += ', context bar confirmed by tester' }
+    $result += ')'
+} else {
+    $result = "Some failed ($failed of $automated checks failed)"
+}
 $pluginText = 'plugin version unknown'
 if ($report.plugin_version) { $pluginText = "plugin $($report.plugin_version)" }
 if ($report.plugin_dll_sha256) { $pluginText += ", DLL SHA-256 $($report.plugin_dll_sha256)" }
@@ -700,6 +760,8 @@ $checkLines = ($script:Results | ForEach-Object {
         if ($_.details) { $line += " - $($_.details)" }
         $line
     }) -join "`n"
+$logText = ''
+if ($pluginLogLines.Count -gt 0) { $logText = "`n`nPlugin lines from the OBS log:`n" + ($pluginLogLines -join "`n") }
 
 Write-Host ''
 Write-Host 'Submit the results' -ForegroundColor White
@@ -709,14 +771,12 @@ Write-Host "    Result:          $result"
 Write-Host "    System:          $($report.os)"
 Write-Host "    Version:         $pluginText"
 Write-Host "    Tools:           $toolsText"
-Write-Host '    Output:          the list of checks above'
+Write-Host '    Output:          the list of checks above and the plugin''s lines from the OBS log'
+if ($sheet) { Write-Host '    Screenshots:     one image of the test source, which you paste in' }
 Write-Host ''
 Write-Host '  It opens in your browser for you to check first. You need a free GitHub account.'
-Write-Host '  The screenshots and log excerpt stay in the zip; you can drag it into the report.'
-Write-Host '  If you do, look at obs-log-nixie.txt in it first: a custom tube images folder path'
-Write-Host '  (which can include your Windows user name) would appear there.'
 if ((Read-Host '  Open the report in your browser now? (y/n)') -notmatch '^[yY]') {
-    Write-Host "  Not submitted. The report is saved at $zip. Thanks for testing!"
+    Write-Host "  Not submitted. The report is saved in $OutputDir. Thanks for testing!"
     exit $exitCode
 }
 $notes = Read-Host '  Anything to add? For example your PC model, or what looked wrong (optional, press Enter to skip)'
@@ -742,19 +802,43 @@ function Get-ReportUrl([string]$Output) {
     return "https://github.com/$Repo/issues/new?$query"
 }
 
-# Browsers and GitHub reject very long links; keep only the failed checks if
-# needed and put the full list on the clipboard.
-$url = Get-ReportUrl $checkLines
+# Browsers and GitHub reject very long links; keep only the checks that did
+# not pass if needed and put the full text on the clipboard instead.
+$fullOutput = $checkLines + $logText
+$url = Get-ReportUrl $fullOutput
+$clipboardUsed = $false
 if ($url.Length -gt 7500) {
-    Set-Clipboard -Value $checkLines
+    Set-Clipboard -Value $fullOutput
+    $clipboardUsed = $true
     $short = ($script:Results | Where-Object { $_.status -ne 'pass' } | ForEach-Object {
             '[{0}] {1} - {2}' -f $_.status.ToUpper(), $_.name, $_.details }) -join "`n"
     $url = Get-ReportUrl ("(Shortened to the checks that did not pass. The full list is on your clipboard; paste it here.)`n" + $short)
-    Write-Host '  The list of checks was too long for a link, so it is on your clipboard. Paste it into the Output box.'
+    Write-Host '  The output was too long for a link, so it is on your clipboard. Paste it into the Output box.'
 }
+
+# Put the screenshot image on the clipboard: Ctrl+V in the report uploads it.
+$imageOnClipboard = $false
+if ($sheet -and -not $clipboardUsed -and [Threading.Thread]::CurrentThread.ApartmentState -eq 'STA') {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        $img = [Drawing.Image]::FromFile($sheet)
+        [Windows.Forms.Clipboard]::SetImage($img)
+        $img.Dispose()
+        $imageOnClipboard = $true
+    } catch {
+        $imageOnClipboard = $false
+    }
+}
+
 Start-Process $url
-# Show the zip in File Explorer so it can be dragged into the report.
-Start-Process explorer.exe -ArgumentList "/select,`"$zip`""
-Write-Host '  Opened in your browser, and the report zip is selected in File Explorer.'
-Write-Host '  Drag the zip into the report if you like, check it, and click "Submit new issue". Thank you!'
+Write-Host ''
+Write-Host '  The report is open in your browser.' -ForegroundColor White
+if ($imageOnClipboard) {
+    Write-Host '  To add the screenshots: click in the Notes box and press Ctrl+V.'
+} elseif ($sheet) {
+    Start-Process explorer.exe -ArgumentList "/select,`"$sheet`""
+    Write-Host '  To add the screenshots: drag nixie-verify-screenshots.png from the File Explorer window'
+    Write-Host '  that just opened into the Notes box.'
+}
+Write-Host '  Then check the report and click "Submit new issue". Thank you!'
 exit $exitCode

@@ -1,0 +1,79 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (8): verify-windows.ps1 startup retry, screenshot sheet and clipboard",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/windows-verify before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of changes made after the maintainer's test runs (issues #7 and #8): requests retry while OBS reports it is still starting, the screenshots are combined into one image that is put on the clipboard, the zip is removed, and the plugin's own OBS log lines are included in the report text. No security issues found; the privacy note from NIXIE-SEC-2026-11-07-5 is updated."
+      },
+      {
+        "category": "details",
+        "title": "Audit details",
+        "text": "Retry: only status 207 (NotReady) is retried, every 500 ms, with a hard 120-second limit per request; every other failure is reported immediately, so the loop cannot hang the script. Screenshot sheet: the C# helper reads only the PNG files the script itself saved in its own screenshots folder, copies each into a new bitmap, disposes everything, and writes one PNG into the report folder; sizes come from the decoded images and are bounded by OBS's output. Clipboard: the image is placed on the clipboard only after the tester agrees to open the report, and only if the long-output fallback did not already use the clipboard. It replaces whatever the tester had copied; the prompt says what is on it. File Explorer is opened only as a fallback, with a quoted path inside the tester's own report folder."
+      },
+      {
+        "category": "details",
+        "title": "Privacy (updates residual risk 2 of NIXIE-SEC-2026-11-07-5)",
+        "text": "The report text now includes the plugin's own OBS log lines (those tagged [obs-nixie-countdown], timestamps removed) instead of leaving them in a zip. One of those lines can contain a custom tube image folder path, which can include the Windows user name. The tester sees the full text in the browser before submitting and can edit it; the README says to check for this. Screenshots show only the test source. The full OBS log lines and report.json stay in the local report folder and are not uploaded."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-8.json"
+      },
+      {
+        "category": "external",
+        "summary": "Pull request",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/5"
+      },
+      {
+        "category": "external",
+        "summary": "Failed test run caused by OBS not being ready",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/issues/7"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-8",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T14:19:22-05:00",
+      "current_release_date": "2026-11-07T14:19:22-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T14:19:22-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

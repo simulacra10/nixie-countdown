@@ -6,6 +6,16 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (8)](nixie-sec-2026-11-07-8.json): no findings
+
+Audit of fixes after the first real test runs (#7, #8). `verify-windows.ps1` now:
+- waits while OBS reports it is still starting, with a time limit
+- combines the screenshots into one image placed on the clipboard
+- drops the zip
+- puts the plugin's own log lines in the report text, where the tester reviews them before posting
+
+The privacy note from log 5 is updated.
+
 ### [2026-11-07 (7)](nixie-sec-2026-11-07-7.json): no findings
 
 Audit of the report submission added to `verify-windows.ps1`: it opens a pre-filled Test report issue in the browser and shows the report zip in File Explorer. It works the same way as `run-tests.ps1` (log 6): the tester reviews and submits the report, and the script sends nothing itself.
