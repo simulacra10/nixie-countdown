@@ -310,11 +310,14 @@ static void hotkey_reset(void *data, obs_hotkey_id id, obs_hotkey_t *hotkey, boo
 }
 
 /* These are also pressed by the context bar buttons (see context-bar.cpp),
- * which call obs_property_button_clicked on the same properties. */
+ * which call obs_property_button_clicked on the same properties. data is
+ * NULL when the properties were built without a source instance. */
 static bool button_start(obs_properties_t *props, obs_property_t *p, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(p);
+	if (!data)
+		return false;
 	action_start(data);
 	return false;
 }
@@ -323,6 +326,8 @@ static bool button_pause(obs_properties_t *props, obs_property_t *p, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(p);
+	if (!data)
+		return false;
 	action_pause(data);
 	return false;
 }
@@ -331,6 +336,8 @@ static bool button_reset(obs_properties_t *props, obs_property_t *p, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(p);
+	if (!data)
+		return false;
 	action_reset(data);
 	return false;
 }
@@ -555,7 +562,6 @@ static void nixie_defaults(obs_data_t *settings)
 
 static obs_properties_t *nixie_properties(void *data)
 {
-	UNUSED_PARAMETER(data);
 	obs_properties_t *props = obs_properties_create();
 
 	obs_properties_t *time = obs_properties_create();
@@ -565,9 +571,9 @@ static obs_properties_t *nixie_properties(void *data)
 	obs_properties_add_group(props, "time_group", T_("Duration"), OBS_GROUP_NORMAL, time);
 
 	obs_properties_t *ctl = obs_properties_create();
-	obs_properties_add_button(ctl, "btn_start", T_("Start"), button_start);
-	obs_properties_add_button(ctl, "btn_pause", T_("Pause"), button_pause);
-	obs_properties_add_button(ctl, "btn_reset", T_("Reset"), button_reset);
+	obs_properties_add_button2(ctl, "btn_start", T_("Start"), button_start, data);
+	obs_properties_add_button2(ctl, "btn_pause", T_("Pause"), button_pause, data);
+	obs_properties_add_button2(ctl, "btn_reset", T_("Reset"), button_reset, data);
 	obs_properties_add_bool(ctl, S_AUTO_START, T_("AutoStart"));
 	obs_properties_add_group(props, "ctl_group", T_("Controls"), OBS_GROUP_NORMAL, ctl);
 
