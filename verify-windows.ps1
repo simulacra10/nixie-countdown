@@ -306,23 +306,31 @@ function Invoke-Obs([string]$Type, $Data) {
 # ------------------------------------------------------------------
 
 # Asks a yes/no question in a dialog that stays on top of OBS, so the tester
-# sees it without switching back to this window. Windows won't let a
-# background program bring an ordinary window in front of OBS, so this uses
-# the system message box with MB_TOPMOST, which stays above OBS even while
-# OBS has focus. (Change the type name if the definition changes: a type
-# can't be redefined in a PowerShell session.)
-if (-not ('NixieVerify.NativeV1' -as [type])) {
-    Add-Type -Name NativeV1 -Namespace NixieVerify -MemberDefinition @'
-[DllImport("user32.dll", CharSet = CharSet.Unicode)]
-public static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
-'@
-}
+# sees it without switching back to this window. The dialog runs in its own
+# short-lived PowerShell process, so nothing in this script's window can stall
+# it, and it gives up after 5 minutes. Popup type 4 + 32 + 4096 is Yes/No,
+# question icon and system modal, which keeps it above OBS even while OBS has
+# focus. If the dialog can't be shown (Windows Script Host disabled, timeout),
+# the question is asked in this window instead.
 function Read-YesNoOnTop([string]$Text, [string]$Title) {
-    $MB_YESNO = 0x4; $MB_ICONQUESTION = 0x20; $MB_SETFOREGROUND = 0x10000; $MB_TOPMOST = 0x40000
+    $toB64 = { param($s) [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($s)) }
+    $dialog = "`$utf8 = [Text.Encoding]::UTF8`n" +
+        "`$text = `$utf8.GetString([Convert]::FromBase64String('$(& $toB64 $Text)'))`n" +
+        "`$title = `$utf8.GetString([Convert]::FromBase64String('$(& $toB64 $Title)'))`n" +
+        "exit (New-Object -ComObject WScript.Shell).Popup(`$text, 300, `$title, 4 + 32 + 4096)"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($dialog))
     $IDYES = 6
-    $answer = [NixieVerify.NativeV1]::MessageBoxW([IntPtr]::Zero, $Text, $Title,
-        $MB_YESNO -bor $MB_ICONQUESTION -bor $MB_SETFOREGROUND -bor $MB_TOPMOST)
-    return $answer -eq $IDYES
+    $IDNO = 7
+    try {
+        $p = Start-Process powershell.exe -PassThru -Wait -WindowStyle Hidden `
+            -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded
+        if ($p.ExitCode -eq $IDYES) { return $true }
+        if ($p.ExitCode -eq $IDNO) { return $false }
+    } catch {
+        # fall through to asking here
+    }
+    Show-ThisWindow
+    return (Read-Host '  The question box did not work. Do you see Start / Resume, Pause and Reset in the context bar? (y/n)') -match '^[yY]'
 }
 
 # Brings this PowerShell window back to the front after OBS closes, and beeps

@@ -1,0 +1,74 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (15): question dialog in a separate process (verify-windows.ps1)",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/verify-linux-macos before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the change made after the maintainer found the context bar question box froze (spinning cursor, buttons not responding), which stopped the script before its cleanup. The dialog now runs in a separate PowerShell process with a 5-minute timeout and a fallback to the terminal. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Audit details",
+        "text": "The child is powershell.exe -NoProfile -NonInteractive -EncodedCommand, started with Start-Process and an argument list (no shell string). The question and title are fixed text in the script, passed into the child as base64 inside the encoded command, so no quoting of the text is involved. The child calls WScript.Shell.Popup with a 300-second timeout and exits with the button code; only exit codes 6 (Yes) and 7 (No) are trusted, anything else falls back to a terminal question. The P/Invoke MessageBoxW type from log 12 is removed."
+      },
+      {
+        "category": "details",
+        "title": "Safety impact",
+        "text": "A frozen dialog previously blocked the script before its finally block, so a tester who closed the window left the obs-websocket server enabled (accepted risk 1 in log 5) and the temporary scene collection in place. With the timeout and fallback, the script always reaches its cleanup unless it is killed."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-15.json"
+      },
+      {
+        "category": "external",
+        "summary": "Pull request",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/11"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-15",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T16:06:38-05:00",
+      "current_release_date": "2026-11-07T16:06:38-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T16:06:38-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (15)](nixie-sec-2026-11-07-15.json): no findings
+
+Audit of the change that shows the Windows question box from a separate process with a 5-minute timeout, after it froze and stopped the script before its cleanup.
+
 ### [2026-11-07 (14)](nixie-sec-2026-11-07-14.json): severity Low, 2 found, 2 fixed
 
 Full review of all the project's scripts, requested by the maintainer.
