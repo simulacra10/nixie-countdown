@@ -113,6 +113,17 @@ The Windows and macOS presets download OBS and its dependencies automatically. O
 
 Every push to `main` builds all three platforms in GitHub Actions. Pushing a version tag such as `1.2.0` creates a draft release with the packages attached.
 
+## Testing
+
+The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need only CMake and a C compiler, not OBS. Run them from the project root:
+
+| Platform | Command |
+| --- | --- |
+| Linux or macOS | `./run-tests.sh` |
+| Windows (PowerShell, Visual Studio or Build Tools installed) | `.\run-tests.ps1` |
+
+Add `--clean` (or `-Clean` on Windows) to rebuild from scratch. GitHub Actions runs the same scripts on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+
 ## Planned
 
 - Sound effects to go with the tube changes, such as a tick when the digits switch and an alarm when the countdown reaches zero
@@ -140,11 +151,14 @@ This project uses more than one license.
 **MIT** ([LICENSE](LICENSE)): the plugin code written for this project:
 
 - `src/nixie-countdown.c`
+- `src/nixie-logic.c` and `src/nixie-logic.h`
 - `src/context-bar.cpp`
 - `src/plugin-main.c`
-- `dev-install.sh`
+- `tests/` (the unit tests and their `CMakeLists.txt`)
+- `dev-install.sh`, `run-tests.sh` and `run-tests.ps1`
+- `.github/workflows/unit-tests.yaml`
 
-**GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders.
+**GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders (except `unit-tests.yaml`).
 
 **Built plugin:** the compiled plugin links against OBS (libobs), which is GPL-2.0-or-later, so the binaries in the release packages are distributed under the GPL-2.0-or-later. The MIT files can still be reused on their own under MIT.
 

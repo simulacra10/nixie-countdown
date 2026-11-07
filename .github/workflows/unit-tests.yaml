@@ -1,0 +1,33 @@
+# Copyright (c) 2026 DMX Digital
+# SPDX-License-Identifier: MIT
+name: Unit Tests 🧪
+on:
+  workflow_call:
+jobs:
+  unit-tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 🐧
+            os: ubuntu-24.04
+          - name: macOS 🍏
+            os: macos-15
+          - name: Windows 🪟
+            os: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Run unit tests (Linux, macOS) 🧪
+        if: runner.os != 'Windows'
+        run: ./run-tests.sh
+
+      - name: Run unit tests (Windows) 🧪
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./run-tests.ps1
