@@ -1,0 +1,160 @@
+{
+  "document": {
+    "category": "csaf_security_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (2): deprecated button API change and NULL check",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "aggregate_severity": {
+      "text": "Low"
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request fix/deprecated-button-api before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the change that replaces the deprecated obs_properties_add_button with obs_properties_add_button2, which fixes the Ubuntu CI build (newer OBS marks the old call deprecated and the build treats warnings as errors). The API change itself introduces no issues. One low-severity pre-existing robustness gap was found and fixed in the same change."
+      },
+      {
+        "category": "general",
+        "title": "Scope and areas found sound",
+        "text": "Reviewed: src/nixie-countdown.c button callbacks and nixie_properties. obs_properties_add_button2 stores the source's data as the button's private pointer, and libobs passes it to the callback; when it is NULL, libobs falls back to the source's own data, matching the old behavior. The context bar (context-bar.cpp) still calls obs_property_button_clicked on properties built from a live source, so it always receives valid data. No change to locking, buffers or input handling."
+      },
+      {
+        "category": "general",
+        "title": "Affected and fixed versions",
+        "text": "Affected: main up to 3850bc1. Fixed: the merge of pull request fix/deprecated-button-api, which adds this log."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-2.json"
+      },
+      {
+        "category": "external",
+        "summary": "Previous audit of the same day",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07.json"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-2",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T12:38:00-05:00",
+      "current_release_date": "2026-11-07T12:38:00-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T12:38:00-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  },
+  "product_tree": {
+    "branches": [
+      {
+        "category": "vendor",
+        "name": "DMX Digital",
+        "branches": [
+          {
+            "category": "product_name",
+            "name": "Nixie Countdown for OBS Studio",
+            "branches": [
+              {
+                "category": "product_version",
+                "name": "main up to 3850bc1",
+                "product": {
+                  "product_id": "CSAFPID-0001",
+                  "name": "Nixie Countdown for OBS Studio, main up to 3850bc1"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "main after fix/deprecated-button-api",
+                "product": {
+                  "product_id": "CSAFPID-0002",
+                  "name": "Nixie Countdown for OBS Studio, main after fix/deprecated-button-api"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-005"
+        }
+      ],
+      "title": "Property button callbacks dereference data without a NULL check",
+      "cwe": {
+        "id": "CWE-476",
+        "name": "NULL Pointer Dereference"
+      },
+      "discovery_date": "2026-11-07T12:38:00-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "button_start, button_pause and button_reset passed their data pointer to the timer actions, which lock n->mutex, without checking it for NULL."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: src/nixie-countdown.c, button_start, button_pause, button_reset. Properties can be built without a source instance (for example obs_get_source_properties with only the source type ID), in which case nixie_properties receives data == NULL. If such a button were clicked, for example by another plugin or script calling obs_property_button_clicked with no source, action_start(NULL) would dereference NULL and crash OBS. No path in OBS itself or in this plugin is known to do this."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T12:38:00-05:00",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown",
+          "details": "Each button callback now returns early when data is NULL. The buttons are registered with obs_properties_add_button2, passing the source data explicitly."
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "details": "Low. Not known to be reachable; would need another component to press the button on instance-less properties."
+        }
+      ]
+    }
+  ]
+}

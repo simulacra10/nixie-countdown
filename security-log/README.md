@@ -2,9 +2,17 @@
 
 Each audit is recorded as one dated file in **CSAF 2.0** (OASIS Common Security Advisory Framework, also published as the international standard **ISO/IEC 20153:2025**). The files validate against the [official CSAF 2.0 JSON schema](https://docs.oasis-open.org/csaf/csaf/v2.0/csaf_json_schema.json) and can be read by CSAF tools such as [Secvisogram](https://secvisogram.github.io/).
 
-File names follow the CSAF rule: the document's tracking ID in lower case, here `nixie-sec-YYYY-MM-DD.json`. Each finding has an ID of the form `NIXIE-YYYY-NNN` and records its CWE, location, failure scenario, fix and impact.
+File names follow the CSAF rule: the document's tracking ID in lower case, here `nixie-sec-YYYY-MM-DD.json`, with `-2`, `-3` and so on for further audits on the same day. Each finding has an ID of the form `NIXIE-YYYY-NNN` and records its CWE, location, failure scenario, fix and impact.
 
 ## Index
+
+### [2026-11-07 (2)](nixie-sec-2026-11-07-2.json): severity Low, 1 found, 1 fixed
+
+Audit of pull request `fix/deprecated-button-api`, which moves the Start / Pause / Reset buttons to `obs_properties_add_button2` so the Ubuntu CI build passes against newer OBS. The API change itself introduced no issues.
+
+| ID | Issue | CWE | Fix |
+| --- | --- | --- | --- |
+| NIXIE-2026-005 | Button callbacks used their data pointer without a NULL check; properties built without a source instance would crash OBS if a button were pressed | CWE-476 | Return early when data is NULL |
 
 ### [2026-11-07](nixie-sec-2026-11-07.json): severity Low, 4 found, 4 fixed
 
