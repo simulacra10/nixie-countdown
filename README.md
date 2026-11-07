@@ -165,7 +165,7 @@ On Windows, close OBS, download [`verify-windows.ps1`](verify-windows.ps1) (no g
 powershell -ExecutionPolicy Bypass -File .\verify-windows.ps1
 ```
 
-Near the end, the script asks you one question, whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
+Near the end, a box appears on top of OBS with one question: whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
 
 The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the plugin's own lines from the OBS log. Read it in the browser before submitting: if you have set a custom tube images folder that couldn't be loaded, its path (which can include your Windows user name) appears in those log lines, and you can delete it there.
 

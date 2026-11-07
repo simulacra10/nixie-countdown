@@ -301,6 +301,39 @@ function Invoke-Obs([string]$Type, $Data) {
 }
 
 # ------------------------------------------------------------------
+# Windows on screen
+# ------------------------------------------------------------------
+
+Add-Type -AssemblyName System.Windows.Forms
+
+# Asks a yes/no question in a dialog that stays on top of OBS, so the tester
+# sees it without switching back to this window.
+function Read-YesNoOnTop([string]$Text, [string]$Title) {
+    $owner = New-Object System.Windows.Forms.Form
+    $owner.TopMost = $true
+    $owner.ShowInTaskbar = $false
+    $owner.StartPosition = 'Manual'
+    $owner.Location = New-Object System.Drawing.Point(-32000, -32000)
+    $owner.Size = New-Object System.Drawing.Size(1, 1)
+    try {
+        $owner.Show()
+        $owner.Activate()
+        $answer = [System.Windows.Forms.MessageBox]::Show($owner, $Text, $Title,
+            [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+        return $answer -eq [System.Windows.Forms.DialogResult]::Yes
+    } finally {
+        $owner.Dispose()
+    }
+}
+
+# Brings this PowerShell window back to the front after OBS closes, and beeps
+# in case Windows only flashes it in the taskbar.
+function Show-ThisWindow {
+    try { [void](New-Object -ComObject WScript.Shell).AppActivate($PID) } catch { }
+    Write-Host "`a" -NoNewline
+}
+
+# ------------------------------------------------------------------
 # Source helpers
 # ------------------------------------------------------------------
 
@@ -631,10 +664,13 @@ try {
     if ($SkipManual) {
         Add-Result 'Context bar buttons appear' 'skip' 'skipped with -SkipManual'
     } else {
-        Write-Host '  In OBS, click "Nixie Verify" in the Sources panel.'
-        Write-Host '  Look at the bar under the preview, next to Properties and Filters.'
-        $answer = Read-Host '  Do you see Start / Resume, Pause and Reset buttons there? (y/n)'
-        if ($answer -match '^[yY]') {
+        Write-Host '  Answer the question in the box on top of OBS.'
+        $seen = Read-YesNoOnTop ("One thing to check by eye:`n`n" +
+            "1. In OBS, click `"Nixie Verify`" in the Sources panel.`n" +
+            "2. Look at the bar under the preview, next to Properties and Filters.`n`n" +
+            "Do you see Start / Resume, Pause and Reset buttons there?`n`n" +
+            '(You can drag this box aside if it covers the bar.)') 'Nixie Countdown verification'
+        if ($seen) {
             Add-Result 'Context bar buttons appear' 'manual' 'tester reported: buttons visible'
         } else {
             Add-Result 'Context bar buttons appear' 'fail' 'tester reported: buttons not visible'
@@ -676,6 +712,7 @@ try {
         } | Remove-Item
     }
     Write-Host '  OBS closed, WebSocket settings restored, temporary scene collection removed.'
+    Show-ThisWindow
 }
 
 # ------------------------------------------------------------------
