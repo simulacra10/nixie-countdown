@@ -1,0 +1,84 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (5): Windows verification script",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/windows-verify before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of verify-windows.ps1, a script testers run on their own Windows machines to verify an installed plugin through obs-websocket, and of the CI job that checks it. No vulnerabilities found. Two residual risks are documented below and accepted."
+      },
+      {
+        "category": "details",
+        "title": "What the script changes on the tester's machine",
+        "text": "(1) %APPDATA%\\obs-studio\\plugin_config\\obs-websocket\\config.json: the original bytes are read first and written back exactly in a finally block after OBS exits (or the file is removed if it did not exist). (2) A scene collection named NixieVerify-<timestamp> is created through obs-websocket; the script switches back to the user's collection before closing OBS and deletes only files in the scenes folder that did not exist before the run and match that name. (3) The report is written to a new folder and zip on the Desktop. Nothing else is written; the script needs no administrator rights."
+      },
+      {
+        "category": "details",
+        "title": "WebSocket exposure during the run",
+        "text": "The obs-websocket server is enabled only while the script runs, on a free port chosen at run time, with a random 24-character alphanumeric password (about 143 bits) and authentication required. obs-websocket listens on all network interfaces and has no bind-address setting, so the port is reachable from the local network for the duration of the test; the password makes guessing impractical. The password is passed on the OBS command line, where other processes of the same user can read it; this is within the same trust boundary. Residual risk 1 (accepted): if the PowerShell window is closed or killed mid-run, the finally block does not run and the WebSocket config is left enabled with the random password, which nobody knows. The user's next OBS session would expose a password-protected server until they disable it in Tools > WebSocket Server Settings. Ctrl+C does run the finally block."
+      },
+      {
+        "category": "details",
+        "title": "Code review",
+        "text": "Requests to OBS are built as hashtables and serialized with ConvertTo-Json, so no user or OBS data is interpolated into JSON by hand. No value received from OBS is used in a file path; screenshot file names come from fixed labels and a counter. The C# image helper (Add-Type) only decodes PNG bytes received from OBS with System.Drawing and compares pixels; it bounds every index by the decoded image size. The script refuses to run while OBS is open, so it never attaches to a session the user is using. Get-Process, Start-Process and CloseMainWindow target only the obs64.exe process it started; it is killed only if it does not exit within 30 seconds. The CI job runs the script in Windows PowerShell 5.1 on a runner without OBS and checks it stops with exit code 2; the job has contents: read and a pinned checkout."
+      },
+      {
+        "category": "details",
+        "title": "Privacy of the report",
+        "text": "Residual risk 2 (accepted, documented): the report zip contains the Windows edition, version and build, the OBS and plugin versions, the plugin DLL path and SHA-256, the OBS install path, screenshots of the test source only, and OBS log lines that contain 'nixie'. Those log lines would include a custom tube image folder path if the tester had set one on another Nixie source, which could contain their Windows user name. Testers attach the zip to a public GitHub issue, so they should look at obs-log-nixie.txt first; the README and issue say so."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Two residual risks accepted and documented. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-5.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-5",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T13:18:48-05:00",
+      "current_release_date": "2026-11-07T13:18:48-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T13:18:48-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

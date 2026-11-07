@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (5)](nixie-sec-2026-11-07-5.json): no findings, 2 accepted risks
+
+Audit of pull request `test/windows-verify`, which adds `verify-windows.ps1`. The script temporarily enables obs-websocket with a random password and restores the original settings afterwards. Accepted risks: if the PowerShell window is closed mid-run, the WebSocket server stays enabled with a password nobody knows; the report can include a custom image folder path, so testers are asked to check it before posting.
+
 ### [2026-11-07 (4)](nixie-sec-2026-11-07-4.json): no findings
 
 Audit of pull request `test/unit-tests`, which moves the timer and layout logic into `src/nixie-logic.c`, adds unit tests with `run-tests.sh` and `run-tests.ps1`, and runs them in CI on all three platforms. The refactor also makes the width calculation saturate instead of overflowing. The tests cover the earlier fixes NIXIE-2026-001 and NIXIE-2026-002.

@@ -124,6 +124,33 @@ The timer and display logic (the time layout, clamping of settings, start / paus
 
 Add `--clean` (or `-Clean` on Windows) to rebuild from scratch. GitHub Actions runs the same scripts on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
 
+### Verifying an installed plugin
+
+The verification script checks a real OBS installation with the plugin installed. It starts OBS, drives a Nixie Countdown source through OBS's built-in remote control (obs-websocket), and checks that:
+- the plugin loads
+- the source has the right size in every format
+- out-of-range settings are clamped
+- Start, Pause and Reset work
+- the countdown reaches zero and blinks
+- the hotkeys work
+
+It saves screenshots and writes a report zip you can attach to a GitHub issue. Your own scenes and settings are left alone: the test runs in a temporary scene collection that is deleted afterwards, and the WebSocket settings are restored when OBS closes.
+
+| Platform | Script |
+| --- | --- |
+| Windows 10 or 11, OBS 31 or newer | [`verify-windows.ps1`](verify-windows.ps1) |
+| macOS, Linux | Planned |
+
+On Windows, close OBS, download [`verify-windows.ps1`](verify-windows.ps1) (no git needed), and in PowerShell run, from the folder you saved it to:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\verify-windows.ps1
+```
+
+The report zip is saved to your Desktop. Near the end, the script asks you one question, whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
+
+The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the OBS log lines that mention the plugin. Look through `obs-log-nixie.txt` before attaching the zip to a public issue: if you have set a custom tube images folder, its path (which can include your Windows user name) appears there.
+
 ## Planned
 
 - Sound effects to go with the tube changes, such as a tick when the digits switch and an alarm when the countdown reaches zero
@@ -155,7 +182,7 @@ This project uses more than one license.
 - `src/context-bar.cpp`
 - `src/plugin-main.c`
 - `tests/` (the unit tests and their `CMakeLists.txt`)
-- `dev-install.sh`, `run-tests.sh` and `run-tests.ps1`
+- `dev-install.sh`, `run-tests.sh`, `run-tests.ps1` and `verify-windows.ps1`
 - `.github/workflows/unit-tests.yaml`
 
 **GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders (except `unit-tests.yaml`).
