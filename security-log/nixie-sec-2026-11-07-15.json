@@ -39,6 +39,11 @@
         "text": "A frozen dialog previously blocked the script before its finally block, so a tester who closed the window left the obs-websocket server enabled (accepted risk 1 in log 5) and the temporary scene collection in place. With the timeout and fallback, the script always reaches its cleanup unless it is killed."
       },
       {
+        "category": "details",
+        "title": "Revision 2",
+        "text": "After testing, the maintainer reported the box did not come to the front. The Popup type now also includes MB_SETFOREGROUND (0x10000) and MB_TOPMOST (0x40000), the same flags the in-process message box used in log 12. These only affect how the box is stacked on screen; no security impact."
+      },
+      {
         "category": "general",
         "title": "Result",
         "text": "No findings. Logged as required by the project's audit policy."
@@ -59,14 +64,19 @@
     "tracking": {
       "id": "NIXIE-SEC-2026-11-07-15",
       "status": "final",
-      "version": "1",
+      "version": "2",
       "initial_release_date": "2026-11-07T16:06:38-05:00",
-      "current_release_date": "2026-11-07T16:06:38-05:00",
+      "current_release_date": "2026-11-07T16:08:59-05:00",
       "revision_history": [
         {
           "date": "2026-11-07T16:06:38-05:00",
           "number": "1",
           "summary": "Initial log of the pull request audit."
+        },
+        {
+          "date": "2026-11-07T16:08:59-05:00",
+          "number": "2",
+          "summary": "Popup now also uses the topmost and set-foreground flags."
         }
       ]
     }

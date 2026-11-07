@@ -308,16 +308,17 @@ function Invoke-Obs([string]$Type, $Data) {
 # Asks a yes/no question in a dialog that stays on top of OBS, so the tester
 # sees it without switching back to this window. The dialog runs in its own
 # short-lived PowerShell process, so nothing in this script's window can stall
-# it, and it gives up after 5 minutes. Popup type 4 + 32 + 4096 is Yes/No,
-# question icon and system modal, which keeps it above OBS even while OBS has
-# focus. If the dialog can't be shown (Windows Script Host disabled, timeout),
-# the question is asked in this window instead.
+# it, and it gives up after 5 minutes. The Popup type combines Yes/No (4),
+# question icon (32), system modal (4096), set foreground (0x10000) and
+# topmost (0x40000): topmost keeps it above OBS even while OBS has focus.
+# If the dialog can't be shown (Windows Script Host disabled, timeout), the
+# question is asked in this window instead.
 function Read-YesNoOnTop([string]$Text, [string]$Title) {
     $toB64 = { param($s) [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($s)) }
     $dialog = "`$utf8 = [Text.Encoding]::UTF8`n" +
         "`$text = `$utf8.GetString([Convert]::FromBase64String('$(& $toB64 $Text)'))`n" +
         "`$title = `$utf8.GetString([Convert]::FromBase64String('$(& $toB64 $Title)'))`n" +
-        "exit (New-Object -ComObject WScript.Shell).Popup(`$text, 300, `$title, 4 + 32 + 4096)"
+        "exit (New-Object -ComObject WScript.Shell).Popup(`$text, 300, `$title, 4 + 32 + 4096 + 0x10000 + 0x40000)"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($dialog))
     $IDYES = 6
     $IDNO = 7
