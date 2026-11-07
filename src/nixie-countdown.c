@@ -260,8 +260,7 @@ static void nixie_update(void *data, obs_data_t *settings)
 	pthread_mutex_lock(&n->mutex);
 	n->format = (int)nixie_clamp_i64(obs_data_get_int(settings, S_FORMAT), FMT_AUTO, FMT_HHMMSS);
 	n->show_separators = obs_data_get_bool(settings, S_SHOW_SEPARATORS);
-	n->spacing = (int)nixie_clamp_i64(obs_data_get_int(settings, S_SPACING), NIXIE_SPACING_MIN,
-					       NIXIE_SPACING_MAX);
+	n->spacing = (int)nixie_clamp_i64(obs_data_get_int(settings, S_SPACING), NIXIE_SPACING_MIN, NIXIE_SPACING_MAX);
 	n->blink_at_zero = obs_data_get_bool(settings, S_BLINK);
 	n->auto_start = obs_data_get_bool(settings, S_AUTO_START);
 

@@ -116,8 +116,7 @@ void nixie_build_layout(char *out, double remaining, int64_t total, int format)
 	out[pos] = '\0';
 }
 
-uint32_t nixie_layout_width(const char *layout, bool show_separators, uint32_t digit_cx, uint32_t colon_cx,
-			    int spacing)
+uint32_t nixie_layout_width(const char *layout, bool show_separators, uint32_t digit_cx, uint32_t colon_cx, int spacing)
 {
 	int64_t x = 0;
 	int64_t count = 0;
