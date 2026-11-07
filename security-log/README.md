@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (4)](nixie-sec-2026-11-07-4.json): no findings
+
+Audit of pull request `test/unit-tests`, which moves the timer and layout logic into `src/nixie-logic.c`, adds unit tests with `run-tests.sh` and `run-tests.ps1`, and runs them in CI on all three platforms. The refactor also makes the width calculation saturate instead of overflowing. The tests cover the earlier fixes NIXIE-2026-001 and NIXIE-2026-002.
+
 ### [2026-11-07 (3)](nixie-sec-2026-11-07-3.json): no findings
 
 Audit of pull request `docs/macos-testers`, which removes the `paths-ignore: '**.md'` filter from the pull request workflow so documentation-only pull requests run the checks the `main` ruleset requires. Fork pull requests still get a read-only token and no secrets, so this adds no new exposure. Logged as a CSAF informational advisory, the document type for an audit with no vulnerabilities.

@@ -17,6 +17,9 @@
 !LICENSE-GPL-2.0
 !README.md
 !dev-install.sh
+!run-tests.sh
+!run-tests.ps1
+!/tests
 !CHANGELOG.md
 !/docs
 !/security-log
