@@ -14,6 +14,12 @@ $ErrorActionPreference = 'Stop'
 $Src = $PSScriptRoot
 $Build = Join-Path $Src 'build_tests'
 
+if (-not (Test-Path (Join-Path $Src 'tests\CMakeLists.txt'))) {
+    Write-Error ("This script builds the unit tests from the project source, so it must stay in the project folder. " +
+        'Download the whole project from https://github.com/simulacra10/obs-nixie-countdown/archive/refs/heads/main.zip, ' +
+        'extract it and run run-tests.ps1 inside the extracted folder. To check an installed plugin instead, use verify-windows.ps1.')
+}
+
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
     Write-Error 'CMake not found. Install it from https://cmake.org/download/ or with: winget install Kitware.CMake'
 }

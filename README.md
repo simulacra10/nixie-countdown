@@ -115,7 +115,7 @@ Every push to `main` builds all three platforms in GitHub Actions. Pushing a ver
 
 ## Testing
 
-The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need only CMake and a C compiler, not OBS. Run them from the project root:
+The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need only CMake and a C compiler, not OBS, and they build from the project source, so run them from a clone or an extracted [project zip](https://github.com/simulacra10/obs-nixie-countdown/archive/refs/heads/main.zip), not on their own:
 
 | Platform | Command |
 | --- | --- |

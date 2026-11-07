@@ -20,6 +20,7 @@ for arg in "$@"; do
   esac
 done
 
+[ -f "$SRC/tests/CMakeLists.txt" ] || { echo "This script builds the unit tests from the project source, so it must stay in the project folder. Clone the project, or download https://github.com/simulacra10/obs-nixie-countdown/archive/refs/heads/main.zip and run it inside the extracted folder." >&2; exit 1; }
 command -v cmake >/dev/null || { echo "CMake not found. Install it first (Debian/Ubuntu: sudo apt install cmake; macOS: brew install cmake)." >&2; exit 1; }
 
 cmake -S "$SRC/tests" -B "$BUILD" -DCMAKE_BUILD_TYPE=Release >/dev/null
