@@ -1,0 +1,160 @@
+{
+  "document": {
+    "category": "csaf_security_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (6): standalone run-tests.ps1 with downloads, installs and report submission",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "aggregate_severity": {
+      "text": "Medium"
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/windows-verify before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the reworked run-tests.ps1, which testers can now run without the project source: it offers to install CMake and Visual Studio Build Tools with winget, downloads the test source from GitHub, builds and runs it, and opens a pre-filled Test report issue. Also covers the Test report issue form and the CI step that runs the script standalone. One medium-severity issue was found in the new code and fixed before merge."
+      },
+      {
+        "category": "details",
+        "title": "Areas found sound",
+        "text": "Downloads: the ref is resolved to a full commit SHA through the GitHub API first, and the archive is downloaded for that SHA over HTTPS (TLS 1.2 forced for Windows PowerShell 5.1), so the code built is exactly the commit shown to the tester and recorded in the report. The temporary folder is under %TEMP%, named after the SHA, and removed in a finally block. Installs: winget is called with --exact package IDs (Kitware.CMake, Microsoft.VisualStudio.2022.BuildTools) from the official winget source, only after the tester answers yes; the Build Tools installer asks Windows for elevation itself, the script never runs as administrator. Submission: nothing is sent by the script. It builds a github.com/issues/new URL with every field escaped by Uri.EscapeDataString and opens it in the browser, where the tester reviews and submits it under their own GitHub account; no tokens or passwords are handled. The report contains the Windows version, CMake and compiler versions, the commit and the test output; the script shows this before asking. In CI (CI environment variable set) the script never prompts. The CI step passes the commit through an environment variable, not inline in the script."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "One finding (NIXIE-2026-006), fixed in the same pull request before merge."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-6.json"
+      },
+      {
+        "category": "external",
+        "summary": "Pull request",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/5"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-6",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T13:31:08-05:00",
+      "current_release_date": "2026-11-07T13:31:08-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T13:31:08-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  },
+  "product_tree": {
+    "branches": [
+      {
+        "category": "vendor",
+        "name": "DMX Digital",
+        "branches": [
+          {
+            "category": "product_name",
+            "name": "Nixie Countdown for OBS Studio",
+            "branches": [
+              {
+                "category": "product_version",
+                "name": "run-tests.ps1 in test/windows-verify before the fix",
+                "product": {
+                  "product_id": "CSAFPID-0001",
+                  "name": "run-tests.ps1, unmerged draft in pull request #5 before the fix"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "run-tests.ps1 as merged",
+                "product": {
+                  "product_id": "CSAFPID-0002",
+                  "name": "run-tests.ps1 as merged from pull request #5"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-006"
+        }
+      ],
+      "title": "-Ref could make testers build and run code from a fork",
+      "cwe": {
+        "id": "CWE-494",
+        "name": "Download of Code Without Integrity Check"
+      },
+      "discovery_date": "2026-11-07T13:31:08-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "run-tests.ps1 accepted any ref or commit ID that the GitHub API resolves under this repository's URLs. GitHub also serves commits from forks through the parent repository's URLs, so a fork commit ID would be downloaded, compiled and run on the tester's machine."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: run-tests.ps1, source download (GET /repos/simulacra10/obs-nixie-countdown/commits/{ref}, then /archive/{sha}.zip). Failure scenario: someone pushes a commit with a malicious test or CMakeLists.txt to their fork and posts on an issue: 'please test my fix with run-tests.ps1 -Ref <sha>'. The script resolves the SHA through this repository's API, downloads the fork's code and runs its build and test executable with the tester's permissions. Testers trust the script because it comes from this repository. The draft was never merged or released, so no tester ran the vulnerable version."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T13:31:08-05:00",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/5",
+          "details": "New Assert-TrustedCommit check before downloading: the resolved commit must be part of main (compare main...sha is identical or behind), the tip of one of this repository's branches (branches-where-head), or a tagged commit. Branches and tags in this repository can only be created by people with push access. Verified against the live API: the pull request branch head and an older main commit are accepted, an unknown commit is refused. The CI step that runs the script standalone is skipped for pull requests from forks, because their commits are refused by design."
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "details": "Medium. Arbitrary code execution as the tester, but only through social engineering, and only in an unmerged draft."
+        }
+      ]
+    }
+  ]
+}

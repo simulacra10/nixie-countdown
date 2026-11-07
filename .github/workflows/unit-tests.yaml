@@ -55,3 +55,19 @@ jobs:
           # The script's exit code 2 is the expected result; don't pass it on.
           $global:LASTEXITCODE = 0
           exit 0
+
+      # A tester without the source: run-tests.ps1 alone in an empty folder
+      # downloads this exact commit from GitHub, builds and runs the tests.
+      - name: Test runner works without the project source 🧪
+        # Fork commits are refused by design, so only run this for branches
+        # of this repository.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        shell: powershell
+        env:
+          TEST_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $alone = Join-Path $env:RUNNER_TEMP 'alone'
+          New-Item -ItemType Directory -Force -Path $alone | Out-Null
+          Copy-Item .\run-tests.ps1 $alone
+          & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $alone 'run-tests.ps1') -Ref $env:TEST_REF -NoSubmit
+          if ($LASTEXITCODE -ne 0) { throw "run-tests.ps1 failed with exit code $LASTEXITCODE" }

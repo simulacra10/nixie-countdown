@@ -6,6 +6,14 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (6)](nixie-sec-2026-11-07-6.json): severity Medium, 1 found, 1 fixed
+
+Audit of the standalone `run-tests.ps1` in pull request `test/windows-verify`, which installs tools with winget, downloads the test source from GitHub and opens a pre-filled test report. Found in the draft and fixed before merge:
+
+| ID | Issue | CWE | Fix |
+| --- | --- | --- | --- |
+| NIXIE-2026-006 | `-Ref` accepted fork commits, which GitHub serves through this repository's URLs, so testers could be talked into building and running someone else's code | CWE-494 | Only accept commits that are part of `main`, the tip of a branch of this repository, or tagged |
+
 ### [2026-11-07 (5)](nixie-sec-2026-11-07-5.json): no findings, 2 accepted risks
 
 Audit of pull request `test/windows-verify`, which adds `verify-windows.ps1`. The script temporarily enables obs-websocket with a random password and restores the original settings afterwards. Accepted risks: if the PowerShell window is closed mid-run, the WebSocket server stays enabled with a password nobody knows; the report can include a custom image folder path, so testers are asked to check it before posting.

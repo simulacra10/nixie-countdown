@@ -115,14 +115,32 @@ Every push to `main` builds all three platforms in GitHub Actions. Pushing a ver
 
 ## Testing
 
-The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need only CMake and a C compiler, not OBS, and they build from the project source, so run them from a clone or an extracted [project zip](https://github.com/simulacra10/obs-nixie-countdown/archive/refs/heads/main.zip), not on their own:
+The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need CMake and a C compiler, not OBS. GitHub Actions runs them on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+
+**On Windows, without downloading the project:**
+1. Download [`run-tests.ps1`](run-tests.ps1).
+2. In PowerShell, from the folder you saved it to, run:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\run-tests.ps1
+   ```
+
+The script:
+- offers to install CMake and the Microsoft C compiler (Visual Studio Build Tools, about 2-3 GB) with winget if they're missing
+- downloads the test source for the current `main` from GitHub into a temporary folder, and removes it afterwards
+- builds and runs the tests
+- offers to submit the results by opening a pre-filled **Test report** issue in your browser, which you check before it's posted
+
+Use `-Ref <branch, tag or commit>` to test something other than `main`.
+
+**From a clone of the project:**
 
 | Platform | Command |
 | --- | --- |
 | Linux or macOS | `./run-tests.sh` |
-| Windows (PowerShell, Visual Studio or Build Tools installed) | `.\run-tests.ps1` |
+| Windows | `.\run-tests.ps1` |
 
-Add `--clean` (or `-Clean` on Windows) to rebuild from scratch. GitHub Actions runs the same scripts on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+Add `--clean` (or `-Clean` on Windows) to rebuild from scratch.
 
 ### Verifying an installed plugin
 
