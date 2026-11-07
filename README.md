@@ -77,7 +77,6 @@ Select a Nixie Countdown source and **Start / Resume**, **Pause** and **Reset** 
 
 ![Start / Resume, Pause and Reset in the OBS context bar](docs/screenshots/context-bar.png)
 
-OBS has no official API for adding buttons to the context bar, so the plugin locates the bar by its internal widget names, which are the same in OBS 30 and 31. If a future OBS release changes them, the buttons won't show up there, but the Properties buttons and hotkeys will keep working.
 
 ## Building from source
 
