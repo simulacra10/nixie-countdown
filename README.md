@@ -26,7 +26,7 @@ This is a third-party plugin for OBS Studio.
 
 ## Requirements
 
-OBS Studio 31 or newer.
+OBS Studio 31 or newer for the downloadable packages. Building from source also works with OBS 30 (tested with 30.2.3 on Debian 13).
 
 ## Download and install
 
@@ -71,9 +71,13 @@ Resize the source with the transform handles like any other source. Its width is
 
 Point **Custom tube images folder** at a folder containing `0.png` through `9.png` and `colon.png`. All digit images should be the same size, with straight (non-premultiplied) alpha. Any missing file falls back to the built-in image.
 
-### About the context bar buttons
+### Context bar buttons
 
-OBS has no official way for plugins to add buttons to the context bar, so the plugin finds that bar by its internal widget names (the same in OBS 30 and 31). If a future OBS release renames them, the buttons will not appear there, but the countdown, the Properties buttons and the hotkeys keep working.
+Select a Nixie Countdown source and **Start / Resume**, **Pause** and **Reset** appear in the context bar under the preview, next to Properties and Filters. You can control the timer without opening any windows.
+
+![Start / Resume, Pause and Reset in the OBS context bar](docs/screenshots/context-bar.png)
+
+OBS has no official API for adding buttons to the context bar, so the plugin locates the bar by its internal widget names, which are the same in OBS 30 and 31. If a future OBS release changes them, the buttons won't show up there, but the Properties buttons and hotkeys will keep working.
 
 ## Building from source
 
@@ -98,6 +102,10 @@ This checks dependencies, builds, installs into your user plugin folder and laun
 The Windows and macOS presets download OBS and its dependencies automatically. On Linux, install `libobs-dev qt6-base-dev cmake ninja-build gcc g++ pkg-config` first.
 
 Every push to `main` builds all three platforms in GitHub Actions. Pushing a version tag such as `1.2.0` creates a draft release with the packages attached.
+
+## Planned
+
+- Sound effects to go with the tube changes, such as a tick when the digits switch and an alarm when the countdown reaches zero
 
 ## Reporting issues
 
