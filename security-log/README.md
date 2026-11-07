@@ -6,6 +6,48 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (12)](nixie-sec-2026-11-07-12.json): no findings
+
+Audit of the change to an always-on-top Windows message box for the context bar question, after the earlier dialog ended up behind OBS.
+
+### [2026-11-07 (11)](nixie-sec-2026-11-07-11.json): no findings
+
+Audit of the change that asks the context bar question in a dialog on top of OBS and brings the PowerShell window back to the front after OBS closes.
+
+### [2026-11-07 (10)](nixie-sec-2026-11-07-10.json): no findings
+
+Audit of the change that shows the browser steps before the report opens, with a "Press Enter" pause, in both Windows scripts. Only console text and its order changed.
+
+### [2026-11-07 (9)](nixie-sec-2026-11-07-9.json): no findings
+
+Audit of the fix that lets `verify-windows.ps1` run again in the same PowerShell window: the image helper's type name now comes from a hash of its code, so a re-run reuses it instead of failing.
+
+### [2026-11-07 (8)](nixie-sec-2026-11-07-8.json): no findings
+
+Audit of fixes after the first real test runs (#7, #8). `verify-windows.ps1` now:
+- waits while OBS reports it is still starting, with a time limit
+- combines the screenshots into one image placed on the clipboard
+- drops the zip
+- puts the plugin's own log lines in the report text, where the tester reviews them before posting
+
+The privacy note from log 5 is updated.
+
+### [2026-11-07 (7)](nixie-sec-2026-11-07-7.json): no findings
+
+Audit of the report submission added to `verify-windows.ps1`: it opens a pre-filled Test report issue in the browser and shows the report zip in File Explorer. It works the same way as `run-tests.ps1` (log 6): the tester reviews and submits the report, and the script sends nothing itself.
+
+### [2026-11-07 (6)](nixie-sec-2026-11-07-6.json): severity Medium, 1 found, 1 fixed
+
+Audit of the standalone `run-tests.ps1` in pull request `test/windows-verify`, which installs tools with winget, downloads the test source from GitHub and opens a pre-filled test report. Found in the draft and fixed before merge:
+
+| ID | Issue | CWE | Fix |
+| --- | --- | --- | --- |
+| NIXIE-2026-006 | `-Ref` accepted fork commits, which GitHub serves through this repository's URLs, so testers could be talked into building and running someone else's code | CWE-494 | Only accept commits that are part of `main`, the tip of a branch of this repository, or tagged |
+
+### [2026-11-07 (5)](nixie-sec-2026-11-07-5.json): no findings, 2 accepted risks
+
+Audit of pull request `test/windows-verify`, which adds `verify-windows.ps1`. The script temporarily enables obs-websocket with a random password and restores the original settings afterwards. Accepted risks: if the PowerShell window is closed mid-run, the WebSocket server stays enabled with a password nobody knows; the report can include a custom image folder path, so testers are asked to check it before posting.
+
 ### [2026-11-07 (4)](nixie-sec-2026-11-07-4.json): no findings
 
 Audit of pull request `test/unit-tests`, which moves the timer and layout logic into `src/nixie-logic.c`, adds unit tests with `run-tests.sh` and `run-tests.ps1`, and runs them in CI on all three platforms. The refactor also makes the width calculation saturate instead of overflowing. The tests cover the earlier fixes NIXIE-2026-001 and NIXIE-2026-002.

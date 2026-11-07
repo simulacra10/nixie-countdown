@@ -31,3 +31,56 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./run-tests.ps1
+
+  verify-script-windows:
+    name: Verify Script (Windows) 🔎
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # OBS isn't installed on the runner, so the script must load (parse,
+      # compile its image helper, check the install) and then stop with
+      # exit code 2 and "OBS not found". Run in Windows PowerShell 5.1,
+      # which is what Windows 10 testers have.
+      - name: Script loads and fails cleanly without OBS 🔎
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $out = & powershell -NoProfile -ExecutionPolicy Bypass -File .\verify-windows.ps1 `
+            -ObsPath C:\nonexistent\obs64.exe -OutputDir "$env:RUNNER_TEMP\verify" -SkipManual 2>&1 | Out-String
+          $code = $LASTEXITCODE
+          Write-Host $out
+          if ($code -ne 2) { throw "expected exit code 2, got $code" }
+          if ($out -notmatch 'OBS not found') { throw 'expected the "OBS not found" message' }
+          # The script's exit code 2 is the expected result; don't pass it on.
+          $global:LASTEXITCODE = 0
+          exit 0
+
+      # Testers re-run the script in the same PowerShell window; the compiled
+      # image helper must not clash with the one from the previous run.
+      - name: Script can run twice in one session 🔎
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          foreach ($run in 1, 2) {
+            & .\verify-windows.ps1 -ObsPath C:\nonexistent\obs64.exe -OutputDir "$env:RUNNER_TEMP\verify-$run" -SkipManual *>&1 | Out-Null
+            if ($LASTEXITCODE -ne 2) { throw "run ${run}: expected exit code 2, got $LASTEXITCODE" }
+          }
+          $global:LASTEXITCODE = 0
+          exit 0
+
+      # A tester without the source: run-tests.ps1 alone in an empty folder
+      # downloads this exact commit from GitHub, builds and runs the tests.
+      - name: Test runner works without the project source 🧪
+        # Fork commits are refused by design, so only run this for branches
+        # of this repository.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        shell: powershell
+        env:
+          TEST_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $alone = Join-Path $env:RUNNER_TEMP 'alone'
+          New-Item -ItemType Directory -Force -Path $alone | Out-Null
+          Copy-Item .\run-tests.ps1 $alone
+          & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $alone 'run-tests.ps1') -Ref $env:TEST_REF -NoSubmit
+          if ($LASTEXITCODE -ne 0) { throw "run-tests.ps1 failed with exit code $LASTEXITCODE" }

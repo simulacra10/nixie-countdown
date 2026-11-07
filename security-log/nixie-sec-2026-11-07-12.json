@@ -1,0 +1,69 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (12): always-on-top question box in verify-windows.ps1",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/windows-verify before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the change that shows the context bar question with the Windows MessageBoxW function and the MB_TOPMOST flag, after the maintainer found the WinForms dialog from log 11 ended up behind OBS. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Audit details",
+        "text": "The script declares one P/Invoke signature, user32.dll MessageBoxW, in the type NixieVerify.NativeV1, guarded so a re-run in the same session reuses it. It is called with no owner window, fixed text from the script, and the flags MB_YESNO, MB_ICONQUESTION, MB_SETFOREGROUND and MB_TOPMOST; only the button result (IDYES) is used. MB_TOPMOST keeps the box above other windows until the tester answers; it does not change any other window or system setting. The WinForms owner form from log 11 is removed."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-12.json"
+      },
+      {
+        "category": "external",
+        "summary": "Pull request",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/5"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-12",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T15:29:52-05:00",
+      "current_release_date": "2026-11-07T15:29:52-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T15:29:52-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

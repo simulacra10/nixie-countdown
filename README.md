@@ -115,14 +115,59 @@ Every push to `main` builds all three platforms in GitHub Actions. Pushing a ver
 
 ## Testing
 
-The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need only CMake and a C compiler, not OBS. Run them from the project root:
+The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need CMake and a C compiler, not OBS. GitHub Actions runs them on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+
+**On Windows, without downloading the project:**
+1. Download [`run-tests.ps1`](run-tests.ps1).
+2. In PowerShell, from the folder you saved it to, run:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\run-tests.ps1
+   ```
+
+The script:
+- offers to install CMake and the Microsoft C compiler (Visual Studio Build Tools, about 2-3 GB) with winget if they're missing
+- downloads the test source for the current `main` from GitHub into a temporary folder, and removes it afterwards
+- builds and runs the tests
+- offers to submit the results by opening a pre-filled **Test report** issue in your browser, which you check before it's posted
+
+Use `-Ref <branch, tag or commit>` to test something other than `main`.
+
+**From a clone of the project:**
 
 | Platform | Command |
 | --- | --- |
 | Linux or macOS | `./run-tests.sh` |
-| Windows (PowerShell, Visual Studio or Build Tools installed) | `.\run-tests.ps1` |
+| Windows | `.\run-tests.ps1` |
 
-Add `--clean` (or `-Clean` on Windows) to rebuild from scratch. GitHub Actions runs the same scripts on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+Add `--clean` (or `-Clean` on Windows) to rebuild from scratch.
+
+### Verifying an installed plugin
+
+The verification script checks a real OBS installation with the plugin installed. It starts OBS, drives a Nixie Countdown source through OBS's built-in remote control (obs-websocket), and checks that:
+- the plugin loads
+- the source has the right size in every format
+- out-of-range settings are clamped
+- Start, Pause and Reset work
+- the countdown reaches zero and blinks
+- the hotkeys work
+
+At the end it offers to open a pre-filled **Test report** issue in your browser, with the results and the plugin's lines from the OBS log already filled in. It also combines the screenshots into one image and puts it on the clipboard, so pressing Ctrl+V in the report attaches it. Nothing is posted until you check the report and click Submit. A copy of everything stays in a report folder on your Desktop. Your own scenes and settings are left alone: the test runs in a temporary scene collection that is deleted afterwards, and the WebSocket settings are restored when OBS closes.
+
+| Platform | Script |
+| --- | --- |
+| Windows 10 or 11, OBS 31 or newer | [`verify-windows.ps1`](verify-windows.ps1) |
+| macOS, Linux | Planned |
+
+On Windows, close OBS, download [`verify-windows.ps1`](verify-windows.ps1) (no git needed), and in PowerShell run, from the folder you saved it to:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\verify-windows.ps1
+```
+
+Near the end, a box appears on top of OBS with one question: whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
+
+The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the plugin's own lines from the OBS log. Read it in the browser before submitting: if you have set a custom tube images folder that couldn't be loaded, its path (which can include your Windows user name) appears in those log lines, and you can delete it there.
 
 ## Planned
 
@@ -155,7 +200,7 @@ This project uses more than one license.
 - `src/context-bar.cpp`
 - `src/plugin-main.c`
 - `tests/` (the unit tests and their `CMakeLists.txt`)
-- `dev-install.sh`, `run-tests.sh` and `run-tests.ps1`
+- `dev-install.sh`, `run-tests.sh`, `run-tests.ps1` and `verify-windows.ps1`
 - `.github/workflows/unit-tests.yaml`
 
 **GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders (except `unit-tests.yaml`).

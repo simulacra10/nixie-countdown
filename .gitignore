@@ -19,6 +19,7 @@
 !dev-install.sh
 !run-tests.sh
 !run-tests.ps1
+!verify-windows.ps1
 !/tests
 !CHANGELOG.md
 !/docs

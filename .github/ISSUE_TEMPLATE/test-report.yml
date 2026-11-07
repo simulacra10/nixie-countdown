@@ -1,0 +1,57 @@
+# Copyright (c) 2026 DMX Digital
+# SPDX-License-Identifier: MIT
+#
+# Filled in automatically by run-tests.ps1. The field ids are used as URL
+# query parameters, so keep them in sync with the script.
+name: Test report
+description: Results from run-tests.ps1, verify-windows.ps1 or your own testing
+title: "[Test report] "
+labels: ["test report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! If you ran one of the scripts, the fields below are already filled in. Check them, add any notes, and click **Submit new issue**.
+  - type: input
+    id: test-type
+    attributes:
+      label: What was tested
+      placeholder: Unit tests (run-tests.ps1)
+    validations:
+      required: true
+  - type: input
+    id: result
+    attributes:
+      label: Result
+      placeholder: All passed / Some failed
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Windows 10 Pro 22H2 (build 19045), x64
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit tested
+      placeholder: commit 6494c7e, or plugin version 1.1.0
+    validations:
+      required: true
+  - type: input
+    id: tools
+    attributes:
+      label: OBS version, compiler or other tools
+      placeholder: CMake 3.31, MSVC 19.44
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      render: text
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else worth knowing, such as what you were doing or what looked wrong.
