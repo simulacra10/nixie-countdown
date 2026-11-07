@@ -5,6 +5,9 @@
 #        ./dev-install.sh --clean   wipe the build folder first
 #        ./dev-install.sh --run     install, then launch OBS and show plugin log lines
 #        (options can be combined: ./dev-install.sh --clean --run)
+#
+# Copyright (c) 2026 DMX Digital
+# SPDX-License-Identifier: MIT
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

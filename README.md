@@ -111,6 +111,19 @@ Nixie tube photograph by DANYK, from [danyk.cz/digitrony_en.html](https://danyk.
 
 ## License
 
-The code is GPL-2.0-or-later. See [LICENSE](LICENSE).
+This project uses more than one license.
 
-The tube images in `data/digits/` are derived from DANYK's photograph and are not covered by the GPL. See [Credits](#credits).
+**MIT** ([LICENSE](LICENSE)): the plugin code written for this project:
+
+- `src/nixie-countdown.c`
+- `src/context-bar.cpp`
+- `src/plugin-main.c`
+- `dev-install.sh`
+
+**GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders.
+
+**Built plugin:** the compiled plugin links against OBS (libobs), which is GPL-2.0-or-later, so the binaries in the release packages are distributed under the GPL-2.0-or-later. The MIT files can still be reused on their own under MIT.
+
+**Tube images:** the images in `data/digits/` are derived from DANYK's photograph and are not covered by either license. See [Credits](#credits) and `data/digits/CREDITS.txt`.
+
+Each source file names its license in an `SPDX-License-Identifier` line in its header.
