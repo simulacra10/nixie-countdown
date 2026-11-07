@@ -1,0 +1,89 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (13): Linux and macOS verification script",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/verify-linux-macos before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of verify-linux-macos.py, the Python port of verify-windows.ps1 for Linux (native and Flatpak OBS) and macOS, its CI checks, and a cleanup fix in verify-windows.ps1. No vulnerabilities found. The residual risks from NIXIE-SEC-2026-11-07-5 apply with one improvement noted below."
+      },
+      {
+        "category": "details",
+        "title": "What the script changes on the tester's machine",
+        "text": "Same as the Windows script: the obs-websocket config.json under the OBS config folder (~/.config/obs-studio, the Flatpak folder under ~/.var/app, or ~/Library/Application Support/obs-studio) is read as bytes first and restored exactly, or removed if it did not exist; a temporary scene collection is created through obs-websocket and only new files in the scenes folder whose names start with NixieVerify are deleted; the report goes to a new folder on the Desktop or in the home folder. No root or sudo is used."
+      },
+      {
+        "category": "details",
+        "title": "Code review",
+        "text": "WebSocket: a minimal RFC 6455 client to 127.0.0.1 only, masking every frame as the RFC requires, checking the Sec-WebSocket-Accept reply, and bounding reads by the frame length; authentication uses the obs-websocket SHA-256 challenge. One-time port from the OS and a 24-character password from the secrets module. Retries only on status 207 (NotReady), with a 120-second limit. PNG decoding handles only 8-bit RGB/RGBA non-interlaced images from OBS and rejects anything else; all indexes are bounded by the decoded image size. External commands are run with argument lists, never a shell: pgrep/pkill with the fixed process name (the script refuses to run while OBS is already open, so only the OBS it started is signalled), xdg-open/open with the report URL, gdbus/xdg-open/open -R with the report image path, wl-copy/xclip/pbcopy/osascript for the clipboard, zenity/kdialog/osascript/tkinter for the question box, notify-send for notifications. Text passed into AppleScript is escaped (backslashes and quotes); the only values are fixed messages and the tester's own report path. The report URL is built with urllib.parse.urlencode. The submission works as reviewed in log 6: nothing is sent by the script."
+      },
+      {
+        "category": "details",
+        "title": "Residual risk 1 improved",
+        "text": "On Linux and macOS the script handles SIGINT, SIGTERM and SIGHUP (sent when the terminal window is closed) by running its cleanup, so closing the terminal mid-run now restores the WebSocket settings. Only SIGKILL or a power loss can leave the WebSocket server enabled with the unknown random password."
+      },
+      {
+        "category": "details",
+        "title": "Fixes found while testing (not security)",
+        "text": "OBS removes punctuation from scene collection file names, so the cleanup pattern NixieVerify-<date>-<time> never matched and both scripts left the temporary collection behind. Fixed in both scripts. Also fixed in the new script before merge: OBS on Linux ignores SIGTERM in some versions, so it is closed with SIGINT; and the script now reaps its own OBS process before checking whether OBS is still running."
+      },
+      {
+        "category": "details",
+        "title": "Test evidence",
+        "text": "Three full runs on Debian 13 with OBS 30.2.3 (Wayland, GNOME) against a separate OBS config folder: all 22 automated checks passed; the final run showed a clean OBS shutdown, a normal WebSocket close (code 1000), the temporary collection removed and the WebSocket config restored. macOS has been checked in CI without OBS only."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-13.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-13",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T15:56:11-05:00",
+      "current_release_date": "2026-11-07T15:56:11-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T15:56:11-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (13)](nixie-sec-2026-11-07-13.json): no findings
+
+Audit of `verify-linux-macos.py`, which brings the Windows verification to Linux (native and Flatpak OBS) and macOS using only the Python standard library. Closing the terminal mid-run now still restores the WebSocket settings, which improves accepted risk 1 from log 5. Also fixes a cleanup bug in both scripts: the temporary scene collection was left behind.
+
 ### [2026-11-07 (12)](nixie-sec-2026-11-07-12.json): no findings
 
 Audit of the change to an always-on-top Windows message box for the context bar question, after the earlier dialog ended up behind OBS.

@@ -52,7 +52,8 @@ $PluginName = 'obs-nixie-countdown'
 $SourceKind = 'nixie_countdown_source'
 $SourceName = 'Nixie Verify'
 $Stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$CollectionName = "NixieVerify-$Stamp"
+# Letters and digits only: OBS drops other characters from the file name.
+$CollectionName = "NixieVerify$($Stamp -replace '-', '')"
 $MinObsVersion = [version]'31.0.0'
 
 # Built-in tube image sizes (data/digits): digits 150x300, colon 50x300
@@ -706,7 +707,7 @@ try {
     }
     if (Test-Path $scenesDir) {
         Get-ChildItem $scenesDir -File | Where-Object {
-            $scenesBefore -notcontains $_.Name -and $_.Name -like "$CollectionName*"
+            $scenesBefore -notcontains $_.Name -and $_.Name -like 'NixieVerify*'
         } | Remove-Item
     }
     Write-Host '  OBS closed, WebSocket settings restored, temporary scene collection removed.'
