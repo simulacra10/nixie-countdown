@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (9)](nixie-sec-2026-11-07-9.json): no findings
+
+Audit of the fix that lets `verify-windows.ps1` run again in the same PowerShell window: the image helper's type name now comes from a hash of its code, so a re-run reuses it instead of failing.
+
 ### [2026-11-07 (8)](nixie-sec-2026-11-07-8.json): no findings
 
 Audit of fixes after the first real test runs (#7, #8). `verify-windows.ps1` now:

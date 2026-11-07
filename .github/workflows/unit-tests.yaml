@@ -56,6 +56,19 @@ jobs:
           $global:LASTEXITCODE = 0
           exit 0
 
+      # Testers re-run the script in the same PowerShell window; the compiled
+      # image helper must not clash with the one from the previous run.
+      - name: Script can run twice in one session 🔎
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          foreach ($run in 1, 2) {
+            & .\verify-windows.ps1 -ObsPath C:\nonexistent\obs64.exe -OutputDir "$env:RUNNER_TEMP\verify-$run" -SkipManual *>&1 | Out-Null
+            if ($LASTEXITCODE -ne 2) { throw "run ${run}: expected exit code 2, got $LASTEXITCODE" }
+          }
+          $global:LASTEXITCODE = 0
+          exit 0
+
       # A tester without the source: run-tests.ps1 alone in an empty folder
       # downloads this exact commit from GitHub, builds and runs the tests.
       - name: Test runner works without the project source 🧪

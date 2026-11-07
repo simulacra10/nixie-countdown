@@ -96,7 +96,10 @@ function Assert-True([bool]$Condition, [string]$Message) {
 # ------------------------------------------------------------------
 
 Add-Type -AssemblyName System.Drawing
-Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
+# A compiled type can't be redefined in a PowerShell session, and testers may
+# run newer versions of this script in the same window. Name the type after a
+# hash of its code, so a re-run reuses it and a changed version gets a new one.
+$imageCode = @'
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -104,15 +107,15 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 
-public class NixieImage {
+public class __TYPE__ {
     public int Width;
     public int Height;
     public byte[] Bgra;
 
-    public static NixieImage FromPng(byte[] png) {
+    public static __TYPE__ FromPng(byte[] png) {
         using (var ms = new MemoryStream(png))
         using (var bmp = new Bitmap(ms)) {
-            var img = new NixieImage { Width = bmp.Width, Height = bmp.Height };
+            var img = new __TYPE__ { Width = bmp.Width, Height = bmp.Height };
             var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly,
                                     PixelFormat.Format32bppArgb);
             img.Bgra = new byte[bmp.Width * bmp.Height * 4];
@@ -166,7 +169,7 @@ public class NixieImage {
     }
 
     // Fraction of pixels where any channel differs by more than 40.
-    public static double ChangedFraction(NixieImage a, NixieImage b) {
+    public static double ChangedFraction(__TYPE__ a, __TYPE__ b) {
         if (a.Width != b.Width || a.Height != b.Height)
             return 1.0;
         int changed = 0;
@@ -180,6 +183,14 @@ public class NixieImage {
     }
 }
 '@
+$sha = [Security.Cryptography.SHA256]::Create()
+$codeHash = -join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($imageCode))[0..5] | ForEach-Object { $_.ToString('x2') })
+$sha.Dispose()
+$imageTypeName = "NixieImage_$codeHash"
+if (-not ($imageTypeName -as [type])) {
+    Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition $imageCode.Replace('__TYPE__', $imageTypeName)
+}
+$NixieImage = [type]$imageTypeName
 
 # Identical frames render to identical pixels, so "same" allows almost no
 # change; a digit change alters a few percent of the image.
@@ -324,16 +335,16 @@ function Get-Shot([string]$Label) {
     $script:ShotCount++
     $file = Join-Path $ShotsDir ('{0:D2}-{1}.png' -f $script:ShotCount, $Label)
     [IO.File]::WriteAllBytes($file, $png)
-    return [NixieImage]::FromPng($png)
+    return $NixieImage::FromPng($png)
 }
 
 function Assert-Same($A, $B, [string]$What) {
-    $f = [NixieImage]::ChangedFraction($A, $B)
+    $f = $NixieImage::ChangedFraction($A, $B)
     Assert-True ($f -le $SameMax) ("{0}: images differ ({1:P2} of pixels changed)" -f $What, $f)
 }
 
 function Assert-Different($A, $B, [string]$What) {
-    $f = [NixieImage]::ChangedFraction($A, $B)
+    $f = $NixieImage::ChangedFraction($A, $B)
     Assert-True ($f -ge $DifferentMin) ("{0}: images should differ but only {1:P2} of pixels changed" -f $What, $f)
 }
 
@@ -722,7 +733,7 @@ $sheet = $null
 $shots = @(Get-ChildItem $ShotsDir -Filter '*.png' | Sort-Object Name)
 if ($shots.Count -gt 0) {
     $sheet = Join-Path $OutputDir 'nixie-verify-screenshots.png'
-    [NixieImage]::SaveSheet([string[]]@($shots | ForEach-Object { $_.FullName }),
+    $NixieImage::SaveSheet([string[]]@($shots | ForEach-Object { $_.FullName }),
         [string[]]@($shots | ForEach-Object { $_.BaseName }), $sheet, 4, 300)
 }
 
