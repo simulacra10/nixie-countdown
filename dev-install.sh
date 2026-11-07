@@ -62,7 +62,8 @@ PM="$(package_manager)"
 case "$PM" in
   apt) packages=(obs-studio libobs-dev qt6-base-dev cmake ninja-build gcc g++ pkg-config) ;;
   dnf) packages=(obs-studio obs-studio-devel qt6-qtbase-devel cmake ninja-build gcc gcc-c++ pkgconf-pkg-config) ;;
-  pacman) packages=(obs-studio qt6-base cmake ninja gcc pkgconf) ;;
+  # OBS's CMake files need SIMDe, which Arch's obs-studio doesn't pull in.
+  pacman) packages=(obs-studio qt6-base simde cmake ninja gcc pkgconf) ;;
   *) packages=() ;;
 esac
 
@@ -72,6 +73,7 @@ for cmd in cmake ninja gcc g++ pkg-config obs; do
 done
 [ -f /usr/include/obs/obs-module.h ] || missing+=("OBS development files")
 [ -f /usr/include/obs/obs-frontend-api.h ] || missing+=("OBS frontend API development files")
+[ -f /usr/include/simde/simde-common.h ] || missing+=("SIMDe headers")
 compgen -G "/usr/lib*/cmake/Qt6/Qt6Config.cmake" >/dev/null ||
   compgen -G "/usr/lib/*/cmake/Qt6/Qt6Config.cmake" >/dev/null || missing+=("Qt 6 development files")
 

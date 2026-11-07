@@ -44,6 +44,11 @@
         "text": "All variables are quoted under set -euo pipefail; the only deletions are the script's own temporary folder and build folder. The report URL is percent-encoded byte by byte (checked against Python's urllib on non-ASCII text) and opened with xdg-open or open; nothing is sent without the tester submitting it in the browser. The submit prompt defaults to No. The CI job runs as root in throwaway containers with contents: read and a pinned checkout, and skips the download test for pull requests from forks."
       },
       {
+        "category": "details",
+        "title": "Revision 2",
+        "text": "The Arch CI job showed OBS's CMake files need SIMDe headers, which Arch's obs-studio package doesn't install. dev-install.sh adds the fixed package name simde to the Arch list and checks for /usr/include/simde. No security impact."
+      },
+      {
         "category": "general",
         "title": "Result",
         "text": "No findings. Logged as required by the project's audit policy."
@@ -64,14 +69,19 @@
     "tracking": {
       "id": "NIXIE-SEC-2026-11-07-17",
       "status": "final",
-      "version": "1",
+      "version": "2",
       "initial_release_date": "2026-11-07T16:32:20-05:00",
-      "current_release_date": "2026-11-07T16:32:20-05:00",
+      "current_release_date": "2026-11-07T16:35:16-05:00",
       "revision_history": [
         {
           "date": "2026-11-07T16:32:20-05:00",
           "number": "1",
           "summary": "Initial log of the pull request audit."
+        },
+        {
+          "date": "2026-11-07T16:35:16-05:00",
+          "number": "2",
+          "summary": "Arch package list adds simde."
         }
       ]
     }
