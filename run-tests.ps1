@@ -264,6 +264,11 @@ function Get-ReportUrl([string]$Output) {
         tools = "CMake $cmakeVersion, $compiler"
         output = $Output
         notes = $notes
+        # Used by GitHub only if the Test report form isn't available; with the
+        # form, the fields above are used and this is ignored.
+        body = ("**What was tested:** Unit tests (run-tests.ps1)`n**Result:** $result`n" +
+            "**Operating system:** $osText`n**Version or commit tested:** $version`n" +
+            "**Tools:** CMake $cmakeVersion, $compiler`n`n**Output**`n``````text`n$Output`n```````n`n**Notes**`n$notes")
     }
     $query = ($fields.Keys | ForEach-Object { "$_=" + [Uri]::EscapeDataString([string]$fields[$_]) }) -join '&'
     return "https://github.com/$Repo/issues/new?$query"
