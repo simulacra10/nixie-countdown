@@ -304,26 +304,24 @@ function Invoke-Obs([string]$Type, $Data) {
 # Windows on screen
 # ------------------------------------------------------------------
 
-Add-Type -AssemblyName System.Windows.Forms
-
 # Asks a yes/no question in a dialog that stays on top of OBS, so the tester
-# sees it without switching back to this window.
+# sees it without switching back to this window. Windows won't let a
+# background program bring an ordinary window in front of OBS, so this uses
+# the system message box with MB_TOPMOST, which stays above OBS even while
+# OBS has focus. (Change the type name if the definition changes: a type
+# can't be redefined in a PowerShell session.)
+if (-not ('NixieVerify.NativeV1' -as [type])) {
+    Add-Type -Name NativeV1 -Namespace NixieVerify -MemberDefinition @'
+[DllImport("user32.dll", CharSet = CharSet.Unicode)]
+public static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
+'@
+}
 function Read-YesNoOnTop([string]$Text, [string]$Title) {
-    $owner = New-Object System.Windows.Forms.Form
-    $owner.TopMost = $true
-    $owner.ShowInTaskbar = $false
-    $owner.StartPosition = 'Manual'
-    $owner.Location = New-Object System.Drawing.Point(-32000, -32000)
-    $owner.Size = New-Object System.Drawing.Size(1, 1)
-    try {
-        $owner.Show()
-        $owner.Activate()
-        $answer = [System.Windows.Forms.MessageBox]::Show($owner, $Text, $Title,
-            [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
-        return $answer -eq [System.Windows.Forms.DialogResult]::Yes
-    } finally {
-        $owner.Dispose()
-    }
+    $MB_YESNO = 0x4; $MB_ICONQUESTION = 0x20; $MB_SETFOREGROUND = 0x10000; $MB_TOPMOST = 0x40000
+    $IDYES = 6
+    $answer = [NixieVerify.NativeV1]::MessageBoxW([IntPtr]::Zero, $Text, $Title,
+        $MB_YESNO -bor $MB_ICONQUESTION -bor $MB_SETFOREGROUND -bor $MB_TOPMOST)
+    return $answer -eq $IDYES
 }
 
 # Brings this PowerShell window back to the front after OBS closes, and beeps

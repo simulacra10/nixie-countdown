@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (12)](nixie-sec-2026-11-07-12.json): no findings
+
+Audit of the change to an always-on-top Windows message box for the context bar question, after the earlier dialog ended up behind OBS.
+
 ### [2026-11-07 (11)](nixie-sec-2026-11-07-11.json): no findings
 
 Audit of the change that asks the context bar question in a dialog on top of OBS and brings the PowerShell window back to the front after OBS closes.
