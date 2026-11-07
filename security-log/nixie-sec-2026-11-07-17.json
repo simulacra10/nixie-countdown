@@ -1,0 +1,79 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (17): Linux and macOS run-tests.sh, dev-install.sh for Fedora and Arch",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request test/linux-run-tests before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of run-tests.sh, now able to run without the project source (tool installs with apt, dnf, pacman or Homebrew, download of the test source, test report), of dev-install.sh with Fedora and Arch support, and of the CI job that runs both in Debian, Fedora and Arch containers. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Downloads (same rules as run-tests.ps1, NIXIE-2026-006)",
+        "text": "--ref must match ^[A-Za-z0-9][A-Za-z0-9._/-]*$ without '..'. The ref is resolved to a 40-hex commit ID, which must be part of main, the tip of a branch of this repository, or tagged; only then is the archive for that exact commit downloaded over HTTPS (curl -fsSL) and unpacked with tar into a mktemp directory removed by an EXIT trap. Tested live: main and an older main commit are accepted, '../../evil' is refused, and a commit from another project is refused. A bug found during testing made the check refuse trusted commits (the API's one-line JSON made grep return several matches); it failed closed and is fixed."
+      },
+      {
+        "category": "details",
+        "title": "Package installs",
+        "text": "Both scripts install only fixed package names from the distribution's own repositories (or Homebrew), and only after the user answers yes or passes --yes. They call sudo only for the package manager command, or run it directly when already root (containers). Nothing else runs as root. On macOS the scripts never install the compiler themselves; they tell the user to run xcode-select --install."
+      },
+      {
+        "category": "details",
+        "title": "Other code",
+        "text": "All variables are quoted under set -euo pipefail; the only deletions are the script's own temporary folder and build folder. The report URL is percent-encoded byte by byte (checked against Python's urllib on non-ASCII text) and opened with xdg-open or open; nothing is sent without the tester submitting it in the browser. The submit prompt defaults to No. The CI job runs as root in throwaway containers with contents: read and a pinned checkout, and skips the download test for pull requests from forks."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-17.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-17",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T16:32:20-05:00",
+      "current_release_date": "2026-11-07T16:32:20-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T16:32:20-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

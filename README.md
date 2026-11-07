@@ -93,13 +93,20 @@ Select a Nixie Countdown source and **Start / Resume**, **Pause** and **Reset** 
 
 Based on the official [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate). Requires CMake 3.28 or newer.
 
-**Debian or Ubuntu (quickest)**
+**Linux: Debian, Ubuntu, Fedora, Arch and their derivatives (quickest)**
 
 ```bash
+git clone https://github.com/simulacra10/obs-nixie-countdown.git
+cd obs-nixie-countdown
 ./dev-install.sh --run
 ```
 
-This checks dependencies, builds, installs into your user plugin folder and launches OBS. Run `./dev-install.sh --help` for options.
+This:
+- checks the build dependencies, and offers to install any that are missing with apt, dnf or pacman (OBS, its development files, Qt 6, CMake, Ninja, GCC)
+- builds the plugin and installs it into your user plugin folder
+- launches OBS
+
+Run `./dev-install.sh --help` for options. It installs for the native OBS package, not the Flatpak.
 
 **Any platform**
 
@@ -115,7 +122,12 @@ Every push to `main` builds all three platforms in GitHub Actions. Pushing a ver
 
 ## Testing
 
-The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need CMake and a C compiler, not OBS. GitHub Actions runs them on Ubuntu, macOS and Windows for every pull request, and a pull request can't be merged into `main` unless they pass.
+The timer and display logic (the time layout, clamping of settings, start / pause / reset and the blink at zero) is covered by unit tests in `tests/`. They need CMake and a C compiler, not OBS. GitHub Actions runs them on Ubuntu, macOS and Windows, and in Debian, Fedora and Arch containers, for every pull request, and a pull request can't be merged into `main` unless they pass.
+
+**On Linux or macOS, without downloading the project:** download [`run-tests.sh`](run-tests.sh) and run `bash run-tests.sh`. It works the same way as the Windows script below:
+- it offers to install CMake and a compiler with apt, dnf or pacman (on macOS: Homebrew and Apple's Command Line Tools)
+- it downloads the test source for the requested commit, builds and runs the tests
+- it offers to open a pre-filled test report
 
 **On Windows, without downloading the project:**
 1. Download [`run-tests.ps1`](run-tests.ps1).
