@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (16)](nixie-sec-2026-11-07-16.json): no findings
+
+Audit of the change that removes the `[Test report]` prefix from report titles. Only fixed text changed.
+
 ### [2026-11-07 (15)](nixie-sec-2026-11-07-15.json): no findings
 
 Audit of the change that shows the Windows question box from a separate process with a 5-minute timeout, after it froze and stopped the script before its cleanup.

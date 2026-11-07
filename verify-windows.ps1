@@ -860,7 +860,7 @@ $notes = Read-Host '  Anything to add? For example your PC model, or what looked
 function Get-ReportUrl([string]$Output) {
     $fields = [ordered]@{
         template = 'test-report.yml'
-        title = "[Test report] Installed plugin on Windows: $result"
+        title = "Installed plugin on Windows: $result"
         'test-type' = 'Installed plugin (verify-windows.ps1)'
         result = $result
         os = $report.os
