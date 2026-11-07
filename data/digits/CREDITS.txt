@@ -1,0 +1,9 @@
+Nixie tube images
+
+The digit images (0.png to 9.png) are cut from a photograph by DANYK:
+  https://danyk.cz/digitrony_en.html
+Used with credit under the author's reuse terms:
+  https://danyk.cz/cado_en.html
+
+These images are not covered by the plugin's GPL license.
+colon.png was generated for this plugin.
