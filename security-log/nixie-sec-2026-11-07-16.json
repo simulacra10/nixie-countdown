@@ -1,0 +1,69 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (16): test report titles",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request docs/report-titles before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the change that removes the '[Test report] ' prefix from the issue titles built by run-tests.ps1, verify-windows.ps1 and verify-linux-macos.py, and from the Test report issue form. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Audit details",
+        "text": "Only a fixed text prefix in one string per script and one line of the issue form changed. The titles are still escaped into the report URL the same way (Uri.EscapeDataString, urllib.parse.urlencode). Reports stay identifiable by the 'test report' label, which the form applies."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-16.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-16",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T16:16:24-05:00",
+      "current_release_date": "2026-11-07T16:16:24-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T16:16:24-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

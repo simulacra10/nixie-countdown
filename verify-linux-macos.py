@@ -1117,7 +1117,7 @@ def submit(report, passed, failed, manual, plugin_log_lines, sheet, output_dir):
     def report_url(output):
         fields = [
             ("template", "test-report.yml"),
-            ("title", "[Test report] Installed plugin on {}: {}".format(PLATFORM_NAME, result)),
+            ("title", "Installed plugin on {}: {}".format(PLATFORM_NAME, result)),
             ("test-type", test_type),
             ("result", result),
             ("os", report["os"]),
