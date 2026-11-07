@@ -6,7 +6,8 @@ Verifies an installed Nixie Countdown plugin on Windows and writes a report.
 Starts OBS, drives a Nixie Countdown source through OBS's built-in remote
 control interface (obs-websocket), checks sizes, buttons, hotkeys, the
 countdown and the blink at zero, takes screenshots, and writes a report folder
-and zip to the Desktop. Attach the zip to the GitHub testing issue.
+and zip to the Desktop. At the end it opens a pre-filled "Test report" issue in
+your browser; nothing is posted until you review it and click Submit there.
 
 Your own setup is left alone: the test runs in a temporary scene collection,
 which is deleted afterwards, and the WebSocket settings are restored exactly.
@@ -26,6 +27,9 @@ Where to write the report. Defaults to a new folder on the Desktop.
 .PARAMETER SkipManual
 Skip the one question that needs you to look at the screen.
 
+.PARAMETER NoSubmit
+Don't offer to submit the results as a GitHub test report.
+
 .NOTES
 Copyright (c) 2026 DMX Digital
 SPDX-License-Identifier: MIT
@@ -35,12 +39,14 @@ param(
     [string]$ObsPath,
     [string]$ExpectedSha256,
     [string]$OutputDir,
-    [switch]$SkipManual
+    [switch]$SkipManual,
+    [switch]$NoSubmit
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
 
+$Repo = 'simulacra10/obs-nixie-countdown'
 $PluginName = 'obs-nixie-countdown'
 $SourceKind = 'nixie_countdown_source'
 $SourceName = 'Nixie Verify'
@@ -673,5 +679,82 @@ if ($failed -eq 0) {
     Write-Host "$failed of $($script:Results.Count) checks failed." -ForegroundColor Red
 }
 Write-Host "Report: $zip"
-Write-Host 'Please attach that zip file to the testing issue on GitHub.'
-if ($failed -eq 0) { exit 0 } else { exit 1 }
+$exitCode = 0
+if ($failed -ne 0) { $exitCode = 1 }
+
+# ------------------------------------------------------------------
+# Submit
+# ------------------------------------------------------------------
+
+# In CI there is nobody to answer questions.
+if ($NoSubmit -or $env:CI) { exit $exitCode }
+
+$result = "All passed ($passed of $($script:Results.Count) checks)"
+if ($failed -ne 0) { $result = "Some failed ($failed of $($script:Results.Count) checks failed)" }
+$pluginText = 'plugin version unknown'
+if ($report.plugin_version) { $pluginText = "plugin $($report.plugin_version)" }
+if ($report.plugin_dll_sha256) { $pluginText += ", DLL SHA-256 $($report.plugin_dll_sha256)" }
+$toolsText = "OBS $($report.obs_version), obs-websocket $($report.obs_websocket_version)"
+$checkLines = ($script:Results | ForEach-Object {
+        $line = '[{0}] {1}' -f $_.status.ToUpper(), $_.name
+        if ($_.details) { $line += " - $($_.details)" }
+        $line
+    }) -join "`n"
+
+Write-Host ''
+Write-Host 'Submit the results' -ForegroundColor White
+Write-Host '  This report would be posted publicly on GitHub:'
+Write-Host '    What was tested: Installed plugin (verify-windows.ps1)'
+Write-Host "    Result:          $result"
+Write-Host "    System:          $($report.os)"
+Write-Host "    Version:         $pluginText"
+Write-Host "    Tools:           $toolsText"
+Write-Host '    Output:          the list of checks above'
+Write-Host ''
+Write-Host '  It opens in your browser for you to check first. You need a free GitHub account.'
+Write-Host '  The screenshots and log excerpt stay in the zip; you can drag it into the report.'
+Write-Host '  If you do, look at obs-log-nixie.txt in it first: a custom tube images folder path'
+Write-Host '  (which can include your Windows user name) would appear there.'
+if ((Read-Host '  Open the report in your browser now? (y/n)') -notmatch '^[yY]') {
+    Write-Host "  Not submitted. The report is saved at $zip. Thanks for testing!"
+    exit $exitCode
+}
+$notes = Read-Host '  Anything to add? For example your PC model, or what looked wrong (optional, press Enter to skip)'
+
+function Get-ReportUrl([string]$Output) {
+    $fields = [ordered]@{
+        template = 'test-report.yml'
+        title = "[Test report] Installed plugin on Windows: $result"
+        'test-type' = 'Installed plugin (verify-windows.ps1)'
+        result = $result
+        os = $report.os
+        version = $pluginText
+        tools = $toolsText
+        output = $Output
+        notes = $notes
+        # Used by GitHub only if the Test report form isn't available; with the
+        # form, the fields above are used and this is ignored.
+        body = ("**What was tested:** Installed plugin (verify-windows.ps1)`n**Result:** $result`n" +
+            "**Operating system:** $($report.os)`n**Version or commit tested:** $pluginText`n" +
+            "**Tools:** $toolsText`n`n**Output**`n``````text`n$Output`n```````n`n**Notes**`n$notes")
+    }
+    $query = ($fields.Keys | ForEach-Object { "$_=" + [Uri]::EscapeDataString([string]$fields[$_]) }) -join '&'
+    return "https://github.com/$Repo/issues/new?$query"
+}
+
+# Browsers and GitHub reject very long links; keep only the failed checks if
+# needed and put the full list on the clipboard.
+$url = Get-ReportUrl $checkLines
+if ($url.Length -gt 7500) {
+    Set-Clipboard -Value $checkLines
+    $short = ($script:Results | Where-Object { $_.status -ne 'pass' } | ForEach-Object {
+            '[{0}] {1} - {2}' -f $_.status.ToUpper(), $_.name, $_.details }) -join "`n"
+    $url = Get-ReportUrl ("(Shortened to the checks that did not pass. The full list is on your clipboard; paste it here.)`n" + $short)
+    Write-Host '  The list of checks was too long for a link, so it is on your clipboard. Paste it into the Output box.'
+}
+Start-Process $url
+# Show the zip in File Explorer so it can be dragged into the report.
+Start-Process explorer.exe -ArgumentList "/select,`"$zip`""
+Write-Host '  Opened in your browser, and the report zip is selected in File Explorer.'
+Write-Host '  Drag the zip into the report if you like, check it, and click "Submit new issue". Thank you!'
+exit $exitCode

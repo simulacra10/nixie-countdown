@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (7)](nixie-sec-2026-11-07-7.json): no findings
+
+Audit of the report submission added to `verify-windows.ps1`: it opens a pre-filled Test report issue in the browser and shows the report zip in File Explorer. It works the same way as `run-tests.ps1` (log 6): the tester reviews and submits the report, and the script sends nothing itself.
+
 ### [2026-11-07 (6)](nixie-sec-2026-11-07-6.json): severity Medium, 1 found, 1 fixed
 
 Audit of the standalone `run-tests.ps1` in pull request `test/windows-verify`, which installs tools with winget, downloads the test source from GitHub and opens a pre-filled test report. Found in the draft and fixed before merge:
