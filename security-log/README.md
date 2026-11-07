@@ -6,6 +6,25 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (15)](nixie-sec-2026-11-07-15.json): no findings
+
+Audit of the change that shows the Windows question box from a separate process with a 5-minute timeout, after it froze and stopped the script before its cleanup.
+
+### [2026-11-07 (14)](nixie-sec-2026-11-07-14.json): severity Low, 2 found, 2 fixed
+
+Full review of all the project's scripts, requested by the maintainer.
+
+| ID | Issue | CWE | Fix |
+| --- | --- | --- | --- |
+| NIXIE-2026-007 | Both verification scripts passed the WebSocket password on OBS's command line, which every local user can read on Linux | CWE-214 | Port and password only in the config file (created with mode 600); 32-character password |
+| NIXIE-2026-008 | `verify-windows.ps1` generated the password with `Get-Random`, not a secure random generator | CWE-338 | `RandomNumberGenerator` with unbiased sampling |
+
+Also hardening: the Linux/macOS script only looks at and signals the user's own OBS, and `run-tests.ps1` validates `-Ref` and the commit ID GitHub returns. Corrects the password strength stated in log 5.
+
+### [2026-11-07 (13)](nixie-sec-2026-11-07-13.json): no findings
+
+Audit of `verify-linux-macos.py`, which brings the Windows verification to Linux (native and Flatpak OBS) and macOS using only the Python standard library. Closing the terminal mid-run now still restores the WebSocket settings, which improves accepted risk 1 from log 5. Also fixes a cleanup bug in both scripts: the temporary scene collection was left behind.
+
 ### [2026-11-07 (12)](nixie-sec-2026-11-07-12.json): no findings
 
 Audit of the change to an always-on-top Windows message box for the context bar question, after the earlier dialog ended up behind OBS.

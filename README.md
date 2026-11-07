@@ -157,7 +157,8 @@ At the end it offers to open a pre-filled **Test report** issue in your browser,
 | Platform | Script |
 | --- | --- |
 | Windows 10 or 11, OBS 31 or newer | [`verify-windows.ps1`](verify-windows.ps1) |
-| macOS, Linux | Planned |
+| Linux (Debian, Ubuntu, Fedora, Arch and their derivatives), OBS 30 or newer, native or Flatpak | [`verify-linux-macos.py`](verify-linux-macos.py) |
+| macOS, OBS 31 or newer | [`verify-linux-macos.py`](verify-linux-macos.py) |
 
 On Windows, close OBS, download [`verify-windows.ps1`](verify-windows.ps1) (no git needed), and in PowerShell run, from the folder you saved it to:
 
@@ -165,9 +166,17 @@ On Windows, close OBS, download [`verify-windows.ps1`](verify-windows.ps1) (no g
 powershell -ExecutionPolicy Bypass -File .\verify-windows.ps1
 ```
 
-Near the end, a box appears on top of OBS with one question: whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` to skip it.
+On Linux or macOS, close OBS, download [`verify-linux-macos.py`](verify-linux-macos.py), and in a terminal run, from the folder you saved it to:
 
-The report contains your Windows version, the OBS and plugin versions, screenshots of the test source only, and the plugin's own lines from the OBS log. Read it in the browser before submitting: if you have set a custom tube images folder that couldn't be loaded, its path (which can include your Windows user name) appears in those log lines, and you can delete it there.
+```bash
+python3 verify-linux-macos.py
+```
+
+It needs only Python 3.8 or newer, which most Linux desktops include (otherwise install `python3`, or `python` on Arch). On macOS, the first `python3` command offers to install Apple's Command Line Tools, which include it.
+
+Near the end, a box appears with one question: whether the buttons appear in the context bar, because that part can't be checked automatically. Add `-SkipManual` (Windows) or `--skip-manual` (Linux, macOS) to skip it. On Linux, the box uses zenity or kdialog when available.
+
+The report contains your operating system and version (on Linux also the desktop and session type), the OBS and plugin versions, screenshots of the test source only, and the plugin's own lines from the OBS log. Read it in the browser before submitting: if you have set a custom tube images folder that couldn't be loaded, its path (which can include your user name) appears in those log lines, and you can delete it there.
 
 ## Planned
 
@@ -200,7 +209,7 @@ This project uses more than one license.
 - `src/context-bar.cpp`
 - `src/plugin-main.c`
 - `tests/` (the unit tests and their `CMakeLists.txt`)
-- `dev-install.sh`, `run-tests.sh`, `run-tests.ps1` and `verify-windows.ps1`
+- `dev-install.sh`, `run-tests.sh`, `run-tests.ps1`, `verify-windows.ps1` and `verify-linux-macos.py`
 - `.github/workflows/unit-tests.yaml`
 
 **GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders (except `unit-tests.yaml`).

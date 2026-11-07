@@ -1,0 +1,245 @@
+{
+  "document": {
+    "category": "csaf_security_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (14): review of all scripts",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "aggregate_severity": {
+      "text": "Low"
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "full review of the project's scripts, requested by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Full review of dev-install.sh, run-tests.sh, run-tests.ps1, verify-windows.ps1 and verify-linux-macos.py, requested by the maintainer. Two low-severity issues in the verification scripts were found and fixed (NIXIE-2026-007, NIXIE-2026-008), plus three hardening changes. This log also corrects a statement in NIXIE-SEC-2026-11-07-5."
+      },
+      {
+        "category": "details",
+        "title": "Areas found sound",
+        "text": "dev-install.sh and run-tests.sh: set -euo pipefail, quoted paths, deletions limited to the build folder and the plugin's own data folder under $HOME. run-tests.ps1: downloads pinned to a full commit SHA over HTTPS and limited to trusted commits (NIXIE-2026-006); the temporary folder is under the user's own %TEMP%; winget installs use exact IDs after consent. verify-windows.ps1 and verify-linux-macos.py: settings are restored from a byte copy in finally blocks, only new NixieVerify* scene files are deleted, external commands take argument lists (no shell), report URLs are escaped, nothing is sent without the tester submitting it in the browser."
+      },
+      {
+        "category": "details",
+        "title": "Hardening (no vulnerability)",
+        "text": "(1) verify-linux-macos.py now looks for and signals only the current user's OBS (pgrep/pkill -u <uid>). Before, pkill could only signal processes the user owns anyway, but another user's running OBS made the script refuse to start. (2) run-tests.ps1 now accepts only branch, tag or commit names for -Ref (letters, digits, . _ / -, no '..'). Before, a value with '../' segments made the GitHub API call a different endpoint; the trust check still refused any commit not in this repository, so this was not exploitable. (3) run-tests.ps1 checks that the commit ID GitHub returns is 40 hex characters before using it in a URL and a folder name. (4) A WebSocket config file the Linux/macOS script creates is now readable by the user only (mode 600)."
+      },
+      {
+        "category": "details",
+        "title": "Correction to NIXIE-SEC-2026-11-07-5",
+        "text": "Log 5 described the Windows password as 'random 24-character alphanumeric (about 143 bits)'. It was generated with Get-Random -Count 24, which picks 24 different characters (no repeats) and is not guaranteed to use a cryptographically secure generator in Windows PowerShell 5.1, so that estimate was wrong. See NIXIE-2026-008."
+      },
+      {
+        "category": "details",
+        "title": "Test evidence",
+        "text": "Full run of verify-linux-macos.py on Debian 13 / OBS 30.2.3 after the fixes, against a separate OBS config folder: all 22 automated checks passed with the password only in the config file. /proc/<pid>/cmdline of the running OBS showed only '--disable-shutdown-check --disable-updater', and the OBS log recorded the same arguments. The Windows changes are checked in CI (script loads and runs twice in one session) and need a run on Windows with OBS."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "Two low-severity findings, fixed before the next release. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-14.json"
+      },
+      {
+        "category": "external",
+        "summary": "Pull request",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/11"
+      },
+      {
+        "category": "external",
+        "summary": "Corrected log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-5.json"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-14",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T16:00:08-05:00",
+      "current_release_date": "2026-11-07T16:00:08-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T16:00:08-05:00",
+          "number": "1",
+          "summary": "Initial log of the audit."
+        }
+      ]
+    }
+  },
+  "product_tree": {
+    "branches": [
+      {
+        "category": "vendor",
+        "name": "DMX Digital",
+        "branches": [
+          {
+            "category": "product_name",
+            "name": "Nixie Countdown for OBS Studio",
+            "branches": [
+              {
+                "category": "product_version",
+                "name": "verify-windows.ps1 as merged in 24a58b8",
+                "product": {
+                  "product_id": "CSAFPID-0001",
+                  "name": "verify-windows.ps1 on main as of 24a58b8 (pull request #5)"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "verify-linux-macos.py draft in pull request #11",
+                "product": {
+                  "product_id": "CSAFPID-0002",
+                  "name": "verify-linux-macos.py, unmerged draft in pull request #11 before this audit"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "scripts after this audit",
+                "product": {
+                  "product_id": "CSAFPID-0003",
+                  "name": "verify-windows.ps1 and verify-linux-macos.py after the fixes in pull request #11"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-007"
+        }
+      ],
+      "title": "WebSocket password visible on the OBS command line",
+      "cwe": {
+        "id": "CWE-214",
+        "name": "Invocation of Process Using Visible Sensitive Information"
+      },
+      "discovery_date": "2026-11-07T16:00:08-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "Both verification scripts started OBS with --websocket_password <password>. Any program that can list processes can read a process's command line; on Linux, /proc/<pid>/cmdline is readable by every local user by default."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: verify-windows.ps1 (Start-Process arguments) and verify-linux-macos.py (Popen arguments). Failure scenario: on a shared Linux computer, another local user reads /proc/<pid>/cmdline of the tester's OBS during the 1-2 minute test (confirmed readable on Debian 13: mode 444, /proc without hidepid), takes the port and password, and connects to obs-websocket, which listens on all interfaces. They can then control OBS for the rest of the run: create sources that read the tester's files and screenshot them, or change scenes. On Windows, reading another user's command line normally needs administrator rights, so the exposure there is to programs running as the tester."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001",
+          "CSAFPID-0002"
+        ],
+        "fixed": [
+          "CSAFPID-0003"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T16:00:08-05:00",
+          "details": "OBS is started without any WebSocket arguments. The port and password are written only to the obs-websocket config file, which OBS reads at startup and the script restores afterwards; a file the script creates gets mode 600. The password is now 32 characters. Verified on Debian 13 that the command line no longer contains them and all checks still pass.",
+          "product_ids": [
+            "CSAFPID-0001",
+            "CSAFPID-0002"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/11"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Needs another account on the same computer (or software running as the tester) during the test run.",
+          "product_ids": [
+            "CSAFPID-0001",
+            "CSAFPID-0002"
+          ]
+        }
+      ]
+    },
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-008"
+        }
+      ],
+      "title": "Windows WebSocket password not generated with a secure random generator",
+      "cwe": {
+        "id": "CWE-338",
+        "name": "Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+      },
+      "discovery_date": "2026-11-07T16:00:08-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "verify-windows.ps1 built the password with Get-Random -Count 24, which is not guaranteed to be cryptographically secure in Windows PowerShell 5.1 and picks 24 distinct characters, reducing the possible passwords."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: verify-windows.ps1, password generation. Failure scenario: if the generator's seed can be narrowed down (for example from the time the script started), someone on the network could try the likely passwords against obs-websocket, which listens on all interfaces during the test, instead of facing the full password space."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0003"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T16:00:08-05:00",
+          "details": "New New-Password function using System.Security.Cryptography.RandomNumberGenerator with rejection sampling (values 248-255 skipped) so each of the 62 characters is equally likely, 32 characters long (about 190 bits). verify-linux-macos.py already used Python's secrets module.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown/pull/11"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Needs network access to the tester's computer during the 1-2 minute test and a way to predict the generator.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    }
+  ]
+}

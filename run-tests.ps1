@@ -175,8 +175,13 @@ if (Test-Path (Join-Path $PSScriptRoot 'tests\CMakeLists.txt')) {
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor
         [Net.SecurityProtocolType]::Tls12
     $agent = 'nixie-countdown-run-tests'
+    # Branch, tag or commit names only, so -Ref can't change which API is called.
+    if ($Ref -notmatch '^[A-Za-z0-9][A-Za-z0-9._/-]*$' -or $Ref -match '\.\.') {
+        Stop-Script "'$Ref' is not a valid branch, tag or commit name."
+    }
     try {
         $commit = (Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/commits/$Ref" -UserAgent $agent).sha
+        if ($commit -notmatch '^[0-9a-f]{40}$') { throw "GitHub returned an unexpected commit ID" }
         Assert-TrustedCommit $commit $agent
     } catch {
         Stop-Script "Could not look up '$Ref' on GitHub: $($_.Exception.Message)"

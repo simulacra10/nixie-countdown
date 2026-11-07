@@ -84,3 +84,47 @@ jobs:
           Copy-Item .\run-tests.ps1 $alone
           & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $alone 'run-tests.ps1') -Ref $env:TEST_REF -NoSubmit
           if ($LASTEXITCODE -ne 0) { throw "run-tests.ps1 failed with exit code $LASTEXITCODE" }
+
+  verify-script-unix:
+    name: Verify Script (${{ matrix.name }}) 🔎
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 🐧
+            os: ubuntu-24.04
+          - name: macOS 🍏
+            os: macos-15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # The image code (PNG reading and writing, the screenshot sheet) runs
+      # without OBS, so check it directly.
+      - name: Image helpers work 🖼️
+        run: |
+          python3 - <<'PY'
+          import importlib.util, os, random
+          spec = importlib.util.spec_from_file_location("v", "verify-linux-macos.py")
+          v = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(v)
+          assert all(len(g) == 15 for g in v.FONT.values())
+          px = bytearray(random.getrandbits(8) for _ in range(64 * 20 * 4))
+          back = v.png_decode(v.png_encode(v.Image(64, 20, px)))
+          assert bytes(back.rgba) == bytes(px)
+          shot = os.path.join(os.environ["RUNNER_TEMP"], "01-test.png")
+          open(shot, "wb").write(v.png_encode(v.Image(64, 20, px)))
+          v.save_sheet([shot], os.path.join(os.environ["RUNNER_TEMP"], "sheet.png"))
+          print("image helpers ok")
+          PY
+
+      # OBS isn't installed on the runner, so the script must start, look for
+      # OBS and stop with exit code 2 and "OBS not found".
+      - name: Script loads and fails cleanly without OBS 🔎
+        run: |
+          set +e
+          out=$(python3 verify-linux-macos.py --obs /nonexistent/obs --output-dir "$RUNNER_TEMP/verify" --skip-manual --no-submit 2>&1)
+          code=$?
+          echo "$out"
+          [ "$code" -eq 2 ] || { echo "expected exit code 2, got $code"; exit 1; }
+          echo "$out" | grep -q 'OBS not found' || { echo 'expected the "OBS not found" message'; exit 1; }
