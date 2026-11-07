@@ -30,6 +30,12 @@ Licensed under the MIT License. See the LICENSE file in the project root.
 
 #define LAYOUT_MAX 32
 
+/* Setting ranges. The properties UI uses these, and nixie_update clamps to
+ * them because settings can also come from an edited scene collection. */
+#define HOURS_MAX 999
+#define SPACING_MIN -60
+#define SPACING_MAX 150
+
 enum nixie_format {
 	FMT_AUTO = 0,
 	FMT_SECONDS = 1, /* 10          */
@@ -43,6 +49,7 @@ struct nixie_countdown {
 	/* graphics (only touched inside obs_enter_graphics) */
 	gs_texture_t *digit[10];
 	gs_texture_t *colon;
+	/* also written under mutex so get_width/get_height can read them */
 	uint32_t digit_cx, digit_cy, colon_cx, colon_cy;
 	char *image_dir;
 
@@ -85,6 +92,27 @@ static int num_digits(int64_t v)
 static int max_int(int a, int b)
 {
 	return a > b ? a : b;
+}
+
+static int64_t clamp_i64(int64_t v, int64_t lo, int64_t hi)
+{
+	return v < lo ? lo : v > hi ? hi : v;
+}
+
+/* On Windows, a UNC path (\\host\share) makes the system contact that host
+ * and send the user's network credentials. A scene collection from someone
+ * else could set one, so only local folders are accepted. */
+static bool is_allowed_dir(const char *dir)
+{
+#ifdef _WIN32
+	if ((dir[0] == '\\' || dir[0] == '/') && (dir[1] == '\\' || dir[1] == '/')) {
+		obs_log(LOG_WARNING, "ignoring network path '%s' for tube images, use a local folder", dir);
+		return false;
+	}
+#else
+	UNUSED_PARAMETER(dir);
+#endif
+	return true;
 }
 
 static void append_char(char *buf, size_t *pos, char c)
@@ -202,10 +230,12 @@ static void load_textures(struct nixie_countdown *n)
 	}
 	n->colon = load_tex(n->image_dir, "colon.png");
 
+	pthread_mutex_lock(&n->mutex);
 	n->digit_cx = n->digit[0] ? gs_texture_get_width(n->digit[0]) : 150;
 	n->digit_cy = n->digit[0] ? gs_texture_get_height(n->digit[0]) : 300;
 	n->colon_cx = n->colon ? gs_texture_get_width(n->colon) : 50;
 	n->colon_cy = n->colon ? gs_texture_get_height(n->colon) : 300;
+	pthread_mutex_unlock(&n->mutex);
 	obs_leave_graphics();
 }
 
@@ -319,12 +349,14 @@ static void nixie_update(void *data, obs_data_t *settings)
 {
 	struct nixie_countdown *n = data;
 
-	int64_t h = obs_data_get_int(settings, S_HOURS);
-	int64_t m = obs_data_get_int(settings, S_MINUTES);
-	int64_t s = obs_data_get_int(settings, S_SECONDS);
+	int64_t h = clamp_i64(obs_data_get_int(settings, S_HOURS), 0, HOURS_MAX);
+	int64_t m = clamp_i64(obs_data_get_int(settings, S_MINUTES), 0, 59);
+	int64_t s = clamp_i64(obs_data_get_int(settings, S_SECONDS), 0, 59);
 	int64_t total = h * 3600 + m * 60 + s;
 
 	const char *dir = obs_data_get_string(settings, S_IMAGE_DIR);
+	if (dir && !is_allowed_dir(dir))
+		dir = "";
 	bool dir_changed = strcmp(dir ? dir : "", n->image_dir ? n->image_dir : "") != 0;
 	if (dir_changed) {
 		bfree(n->image_dir);
@@ -332,9 +364,9 @@ static void nixie_update(void *data, obs_data_t *settings)
 	}
 
 	pthread_mutex_lock(&n->mutex);
-	n->format = (int)obs_data_get_int(settings, S_FORMAT);
+	n->format = (int)clamp_i64(obs_data_get_int(settings, S_FORMAT), FMT_AUTO, FMT_HHMMSS);
 	n->show_separators = obs_data_get_bool(settings, S_SHOW_SEPARATORS);
-	n->spacing = (int)obs_data_get_int(settings, S_SPACING);
+	n->spacing = (int)clamp_i64(obs_data_get_int(settings, S_SPACING), SPACING_MIN, SPACING_MAX);
 	n->blink_at_zero = obs_data_get_bool(settings, S_BLINK);
 	n->auto_start = obs_data_get_bool(settings, S_AUTO_START);
 
@@ -450,9 +482,11 @@ static uint32_t nixie_get_width(void *data)
 static uint32_t nixie_get_height(void *data)
 {
 	struct nixie_countdown *n = data;
+	pthread_mutex_lock(&n->mutex);
 	uint32_t h = n->digit_cy;
 	if (n->show_separators && n->colon_cy > h)
 		h = n->colon_cy;
+	pthread_mutex_unlock(&n->mutex);
 	return h ? h : 1;
 }
 
@@ -525,7 +559,7 @@ static obs_properties_t *nixie_properties(void *data)
 	obs_properties_t *props = obs_properties_create();
 
 	obs_properties_t *time = obs_properties_create();
-	obs_properties_add_int(time, S_HOURS, T_("Hours"), 0, 999, 1);
+	obs_properties_add_int(time, S_HOURS, T_("Hours"), 0, HOURS_MAX, 1);
 	obs_properties_add_int(time, S_MINUTES, T_("Minutes"), 0, 59, 1);
 	obs_properties_add_int(time, S_SECONDS, T_("Seconds"), 0, 59, 1);
 	obs_properties_add_group(props, "time_group", T_("Duration"), OBS_GROUP_NORMAL, time);
@@ -545,7 +579,7 @@ static obs_properties_t *nixie_properties(void *data)
 	obs_property_list_add_int(fmt, T_("Format.MMSS"), FMT_MMSS);
 	obs_property_list_add_int(fmt, T_("Format.HHMMSS"), FMT_HHMMSS);
 	obs_properties_add_bool(disp, S_SHOW_SEPARATORS, T_("ShowSeparators"));
-	obs_properties_add_int_slider(disp, S_SPACING, T_("Spacing"), -60, 150, 1);
+	obs_properties_add_int_slider(disp, S_SPACING, T_("Spacing"), SPACING_MIN, SPACING_MAX, 1);
 	obs_properties_add_bool(disp, S_BLINK, T_("BlinkAtZero"));
 	obs_properties_add_path(disp, S_IMAGE_DIR, T_("ImageDir"), OBS_PATH_DIRECTORY, NULL, NULL);
 	obs_properties_add_group(props, "disp_group", T_("Display"), OBS_GROUP_NORMAL, disp);

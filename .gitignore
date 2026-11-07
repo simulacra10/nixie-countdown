@@ -19,6 +19,7 @@
 !dev-install.sh
 !CHANGELOG.md
 !/docs
+!/security-log
 
 # Exclude lock files
 *.lock.json

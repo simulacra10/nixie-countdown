@@ -106,6 +106,12 @@ Every push to `main` builds all three platforms in GitHub Actions. Pushing a ver
 
 - Sound effects to go with the tube changes, such as a tick when the digits switch and an alarm when the countdown reaches zero
 
+## Security audits
+
+All code submitted to this project is security audited before it is committed to `main`, and every audit is logged, whether or not it finds anything. That includes pull requests.
+
+The logs are in [security-log/](security-log/). Each one is a dated file in **CSAF 2.0** (ISO/IEC 20153), the international standard format for security advisories. Each finding records its CWE classification, location, failure scenario, fix and impact. [security-log/README.md](security-log/README.md) has a readable summary of each audit.
+
 ## Reporting issues
 
 Open an issue on the [Issues](../../issues) page. Please include your OBS version, your operating system, and the lines containing `nixie` from your OBS log (Help > Log Files > Show Log Files).

