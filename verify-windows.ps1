@@ -462,7 +462,25 @@ $listener = New-Object System.Net.Sockets.TcpListener([Net.IPAddress]::Loopback,
 $listener.Start()
 $Port = $listener.LocalEndpoint.Port
 $listener.Stop()
-$Password = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 24 | ForEach-Object { [char]$_ })
+# Get-Random isn't guaranteed to be cryptographically secure in Windows
+# PowerShell 5.1, so use the system's secure random generator (NIXIE-2026-008).
+function New-Password([int]$Length = 32) {
+    $alphabet = [char[]]((48..57) + (65..90) + (97..122))
+    $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+    $byte = New-Object byte[] 1
+    $result = New-Object System.Text.StringBuilder
+    try {
+        while ($result.Length -lt $Length) {
+            $rng.GetBytes($byte)
+            # 248 is the largest multiple of 62 below 256; skipping higher values avoids bias.
+            if ($byte[0] -lt 248) { [void]$result.Append($alphabet[$byte[0] % 62]) }
+        }
+    } finally {
+        $rng.Dispose()
+    }
+    return $result.ToString()
+}
+$Password = New-Password
 
 $wsConfig = Join-Path $env:APPDATA 'obs-studio\plugin_config\obs-websocket\config.json'
 $wsConfigOriginal = $null
@@ -493,8 +511,10 @@ try {
 
     Write-Host ''
     Write-Host 'Starting OBS'
+    # The port and password are only in the config file above, never on the
+    # command line, where other programs could read them (NIXIE-2026-007).
     $obs = Start-Process -FilePath $ObsPath -WorkingDirectory (Split-Path $ObsPath) -PassThru -ArgumentList @(
-        '--disable-shutdown-check', '--disable-updater', '--websocket_port', $Port, '--websocket_password', $Password)
+        '--disable-shutdown-check', '--disable-updater')
 
     Test-Step 'OBS starts and accepts the test connection' {
         Connect-Obs $Port $Password

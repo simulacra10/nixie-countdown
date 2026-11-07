@@ -612,7 +612,8 @@ def describe_os():
 
 
 def process_running(name):
-    return run_quiet(["pgrep", "-x", name]) == 0
+    # Only this user's processes: never touch another user's OBS.
+    return run_quiet(["pgrep", "-u", str(os.getuid()), "-x", name]) == 0
 
 
 def free_port():
@@ -716,7 +717,7 @@ def main():
 
     # Turn on the WebSocket server for this run with a one-time port and password.
     port = free_port()
-    password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(24))
+    password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
     ws_config = os.path.join(config_dir, "plugin_config", "obs-websocket", "config.json")
     ws_original = None
     if os.path.isfile(ws_config):
@@ -769,13 +770,16 @@ def main():
         config.update({"first_load": False, "server_enabled": True, "alerts_enabled": False, "auth_required": True,
                        "server_port": port, "server_password": password})
         os.makedirs(os.path.dirname(ws_config), exist_ok=True)
-        with open(ws_config, "w") as f:
+        # A new file is readable by this user only; an existing one keeps OBS's permissions.
+        fd = os.open(ws_config, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
             json.dump(config, f, indent=4)
 
         heading("Starting OBS")
+        # The port and password are only in the config file above, never on the
+        # command line, which every user can read on Linux (NIXIE-2026-007).
         proc = subprocess.Popen(
-            obs_cmd + ["--disable-shutdown-check", "--disable-updater",
-                       "--websocket_port", str(port), "--websocket_password", password],
+            obs_cmd + ["--disable-shutdown-check", "--disable-updater"],
             cwd=os.path.dirname(obs_cmd[0]) if os.path.isabs(obs_cmd[0]) else None,
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
         )
@@ -1057,7 +1061,7 @@ def close_obs(proc, process_name):
         # OBS on Linux shuts down cleanly on SIGINT (as with Ctrl+C) but ignores
         # SIGTERM in some versions; send SIGTERM too if SIGINT doesn't work.
         # pkill also reaches OBS running inside Flatpak.
-        run_quiet(["pkill", "-INT", "-x", process_name])
+        run_quiet(["pkill", "-INT", "-u", str(os.getuid()), "-x", process_name])
     def still_running():
         # Collect our own child first: pgrep also lists finished, unreaped processes.
         proc.poll()
@@ -1066,11 +1070,11 @@ def close_obs(proc, process_name):
     deadline = time.time() + 30
     while time.time() < deadline and still_running():
         if not IS_MAC and time.time() > deadline - 20:
-            run_quiet(["pkill", "-TERM", "-x", process_name])
+            run_quiet(["pkill", "-TERM", "-u", str(os.getuid()), "-x", process_name])
         time.sleep(0.5)
     if still_running():
         print("  OBS did not close on its own; stopping it.")
-        run_quiet(["pkill", "-KILL", "-x", process_name])
+        run_quiet(["pkill", "-KILL", "-u", str(os.getuid()), "-x", process_name])
         time.sleep(1)
     try:
         proc.wait(timeout=10)
