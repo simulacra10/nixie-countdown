@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (3)](nixie-sec-2026-11-07-3.json): no findings
+
+Audit of pull request `docs/macos-testers`, which removes the `paths-ignore: '**.md'` filter from the pull request workflow so documentation-only pull requests run the checks the `main` ruleset requires. Fork pull requests still get a read-only token and no secrets, so this adds no new exposure. Logged as a CSAF informational advisory, the document type for an audit with no vulnerabilities.
+
 ### [2026-11-07 (2)](nixie-sec-2026-11-07-2.json): severity Low, 1 found, 1 fixed
 
 Audit of pull request `fix/deprecated-button-api`, which moves the Start / Pause / Reset buttons to `obs_properties_add_button2` so the Ubuntu CI build passes against newer OBS. The API change itself introduced no issues.

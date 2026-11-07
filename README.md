@@ -1,6 +1,6 @@
 # Nixie Countdown
 
-A countdown timer source that displays the time on photographic Nixie tubes. Works on Windows, macOS and Linux (only tested on Debian 13).
+A countdown timer source that displays the time on photographic Nixie tubes, for Windows, macOS and Linux. See [Tested platforms](#tested-platforms).
 
 This is a third-party plugin for OBS Studio.
 
@@ -27,6 +27,17 @@ This is a third-party plugin for OBS Studio.
 ## Requirements
 
 OBS Studio 31 or newer for the downloadable packages. Building from source also works with OBS 30 (tested with 30.2.3 on Debian 13).
+
+## Tested platforms
+
+| Platform | Status |
+| --- | --- |
+| Debian 13, OBS 30.2.3 (built from source) | Tested |
+| Windows 10 (CI build) | Tested |
+| macOS | Built by CI, **not yet tested on a Mac** |
+| Ubuntu 24.04 | Built by CI, not yet tested |
+
+**macOS testers wanted.** I don't have a Mac, so the macOS package has never been run on one. If you use OBS on macOS, please try it and report back on the [macOS testing issue](../../issues/2). It lists what to check, and a report that everything works is just as helpful as a bug report.
 
 ## Download and install
 
@@ -120,7 +131,7 @@ Open an issue on the [Issues](../../issues) page. Please include your OBS versio
 
 Nixie tube photograph by DANYK, from [danyk.cz/digitrony_en.html](https://danyk.cz/digitrony_en.html), used with credit under the author's reuse terms ([danyk.cz/cado_en.html](https://danyk.cz/cado_en.html)). The digits were cut from the photograph and placed on transparent backgrounds for this plugin.
 
-**AI disclosure:** The code for this plugin was written by Claude (Anthropic's AI model) at my direction, including the C source, the Qt context bar integration and the build scripts. Claude also cut the tube digits from the source photograph, processed them onto transparent backgrounds, and generated the colon separator image. I designed the features, directed each revision, and tested it on Debian 13 with OBS.
+**AI disclosure:** The code for this plugin was written by Claude (Anthropic's AI model) at my direction, including the C source, the Qt context bar integration and the build scripts. Claude also cut the tube digits from the source photograph, processed them onto transparent backgrounds, and generated the colon separator image. I designed the features, directed each revision, and tested it with OBS on Debian 13 and Windows 10.
 
 ## License
 
