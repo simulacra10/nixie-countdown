@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2026 DMX Digital. SPDX-License-Identifier: MIT -->
+<component type="addon">
+  <id>com.obsproject.Studio.Plugin.NixieCountdown</id>
+  <extends>com.obsproject.Studio</extends>
+  <name>Nixie Countdown</name>
+  <summary>Countdown timer source that shows the time on photographic Nixie tubes</summary>
+  <developer_name>DMX Digital</developer_name>
+  <url type="homepage">https://github.com/simulacra10/nixie-countdown</url>
+  <url type="bugtracker">https://github.com/simulacra10/nixie-countdown/issues</url>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later AND MIT</project_license>
+  <releases>
+    <release version="1.2.0" date="2026-11-07"/>
+  </releases>
+</component>

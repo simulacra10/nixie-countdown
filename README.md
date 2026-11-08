@@ -37,14 +37,16 @@ OBS Studio 31 or newer for the downloadable packages. Building from source also 
 
 ## Tested platforms
 
-| Platform | Status |
-| --- | --- |
-| Debian 13, OBS 30.2.3 (built from source) | Tested |
-| Windows 10 (CI build) | Tested |
-| macOS | Built by CI, **not yet tested on a Mac** |
-| Ubuntu 24.04 | Built by CI, not yet tested |
+| Platform | OBS | Status |
+| --- | --- | --- |
+| Windows 10 Pro (CI build) | 33.0.1 | Tested: all automated checks of `verify-windows.ps1` pass ([report](../../issues/10)) |
+| Debian 13, GNOME on Wayland (built from source) | 30.2.3 | Tested: all automated checks of `verify-linux-macos.py` pass ([report](../../issues/12)) |
+| Fedora, Arch | | Builds and unit tests pass in CI; not yet tested in OBS |
+| Ubuntu 24.04 (`.deb`) | | Built by CI; not yet tested |
+| Flatpak OBS (Flatpak extension) | | Built by CI; not yet tested |
+| macOS | | Built by CI, **not yet tested on a Mac** |
 
-**macOS testers wanted.** I don't have a Mac, so the macOS package has never been run on one. If you use OBS on macOS, please try it and report back on the [macOS testing issue](../../issues/2). It lists what to check, and a report that everything works is just as helpful as a bug report.
+**Testers wanted.** If you use OBS on macOS, or on Linux other than Debian, please try the plugin and report back. The [macOS testing issue](../../issues/2) and the [Linux testing issue](../../issues/16) say what to do. A verification script does the checking and opens a pre-filled report, and a report that everything works is just as helpful as a bug report.
 
 ## Download and install
 
@@ -68,7 +70,15 @@ Get the latest version from the [Releases](../../releases) page.
 sudo apt install ./nixie-countdown-*-ubuntu-24.04-x86_64.deb
 ```
 
-**Other Linux distributions, including Debian**: build from source (see below).
+**Flatpak OBS** (from Flathub)
+
+```bash
+flatpak install ./nixie-countdown-*-flatpak-x86_64.flatpak
+```
+
+This installs the plugin as an extension of the OBS Flatpak. If you installed OBS with `--user`, add `--user` here too.
+
+**Other Linux distributions, including Debian, Fedora and Arch**: build from source (see below).
 
 ## Usage
 
@@ -113,7 +123,7 @@ This:
 - builds the plugin and installs it into your user plugin folder
 - launches OBS
 
-Run `./dev-install.sh --help` for options. It installs for the native OBS package, not the Flatpak.
+Run `./dev-install.sh --help` for options. It installs for the native OBS package; for the Flatpak, use the `.flatpak` file from Releases, or build it with the manifest in [`flatpak/`](flatpak/).
 
 **Any platform**
 
@@ -230,6 +240,7 @@ This project uses more than one license.
 - `tests/` (the unit tests and their `CMakeLists.txt`)
 - `dev-install.sh`, `run-tests.sh`, `run-tests.ps1`, `verify-windows.ps1` and `verify-linux-macos.py`
 - `.github/workflows/unit-tests.yaml`
+- `flatpak/` (the Flatpak manifest and metadata)
 
 **GPL-2.0-or-later** ([LICENSE-GPL-2.0](LICENSE-GPL-2.0)): files from the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate), including `src/plugin-support.h`, `src/plugin-support.c.in`, `CMakeLists.txt`, `CMakePresets.json`, `buildspec.json`, and the `cmake/`, `build-aux/` and `.github/` folders (except `unit-tests.yaml`).
 

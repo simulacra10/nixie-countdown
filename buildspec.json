@@ -38,7 +38,7 @@
     },
     "name": "nixie-countdown",
     "displayName": "Nixie Countdown",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "DMX Digital",
     "website": "https://github.com/simulacra10/nixie-countdown",
     "email": "simulacra10@users.noreply.github.com"

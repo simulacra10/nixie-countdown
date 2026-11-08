@@ -1,0 +1,79 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-07 (19): Flatpak package and release 1.2.0 preparation",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request release/1.2.0 before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the Flatpak extension manifest and metadata, the CI job that builds it, the release wiring that attaches it, the Flatpak extension paths in verify-linux-macos.py, and the version bump to 1.2.0 with its changelog. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Flatpak extension",
+        "text": "The manifest builds the plugin as an extension of com.obsproject.Studio (branch stable) with org.freedesktop.Sdk 26.08, the same pattern as the OBS plugins on Flathub, and installs only into its own prefix /app/plugins/NixieCountdown. An extension has no finish-args of its own: it runs with the OBS Flatpak's existing permissions and adds none. The source is the repository directory itself (type dir), so the build uses exactly the checked-out commit; build folders and .git are skipped."
+      },
+      {
+        "category": "details",
+        "title": "CI and release",
+        "text": "The Build Flatpak job runs on a GitHub-hosted runner with contents: read, installs flatpak and flatpak-builder from Ubuntu's repositories, and gets the OBS runtime and SDK from Flathub over HTTPS (signed by Flathub). It checks that the plugin binary and data were installed before bundling. Values from buildspec.json reach the shell only through environment variables. The release job adds .flatpak to the files it renames, checksums and attaches, the same way as the other packages; releases are still created as drafts for the maintainer to review."
+      },
+      {
+        "category": "details",
+        "title": "Verification script",
+        "text": "verify-linux-macos.py now also looks for the plugin in the Flatpak extension folders under ~/.local/share/flatpak and /var/lib/flatpak when testing Flatpak OBS. It only reads these paths (to check files and compute the SHA-256)."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/nixie-countdown/blob/main/security-log/nixie-sec-2026-11-07-19.json"
+      },
+      {
+        "category": "external",
+        "summary": "Project repository",
+        "url": "https://github.com/simulacra10/nixie-countdown"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-07-19",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-07T23:57:15-05:00",
+      "current_release_date": "2026-11-07T23:57:15-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-07T23:57:15-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

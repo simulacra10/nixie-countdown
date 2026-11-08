@@ -43,6 +43,7 @@ PLUGIN = "nixie-countdown"
 SOURCE_KIND = "nixie_countdown_source"
 SOURCE_NAME = "Nixie Verify"
 FLATPAK_ID = "com.obsproject.Studio"
+FLATPAK_PLUGIN_ID = "com.obsproject.Studio.Plugin.NixieCountdown"
 
 IS_MAC = sys.platform == "darwin"
 PLATFORM_NAME = "macOS" if IS_MAC else "Linux"
@@ -574,9 +575,19 @@ def find_obs(override):
     return None
 
 
-def find_plugin(config_dir):
+def find_plugin(config_dir, flatpak=False):
     """Returns (binary path, data dir) of the installed plugin, or (None, None)."""
-    if IS_MAC:
+    if flatpak:
+        # The Flatpak extension, installed per user or for the whole system.
+        candidates = []
+        for base in (os.path.expanduser("~/.local/share/flatpak"), "/var/lib/flatpak"):
+            files = os.path.join(base, "runtime", FLATPAK_PLUGIN_ID, platform.machine(), "stable", "active", "files")
+            candidates.append((os.path.join(files, "lib", "obs-plugins", PLUGIN + ".so"),
+                               os.path.join(files, "share", "obs", "obs-plugins", PLUGIN)))
+        # Plugins copied into the Flatpak's own plugin folder also load.
+        user = os.path.join(config_dir, "plugins", PLUGIN)
+        candidates.append((os.path.join(user, "bin", "64bit", PLUGIN + ".so"), os.path.join(user, "data")))
+    elif IS_MAC:
         bundle = os.path.join(config_dir, "plugins", PLUGIN + ".plugin", "Contents")
         candidates = [(os.path.join(bundle, "MacOS", PLUGIN), os.path.join(bundle, "Resources"))]
     else:
@@ -686,10 +697,10 @@ def main():
     }
 
     heading("Installation")
-    binary, data_dir = find_plugin(config_dir)
+    binary, data_dir = find_plugin(config_dir, flatpak=obs_cmd[0] == "flatpak")
 
     def plugin_installed():
-        check(binary is not None, "plugin not found in {} or the system plugin folders".format(config_dir))
+        check(binary is not None, "plugin not found in {}, the system plugin folders or the Flatpak extension".format(config_dir))
         with open(binary, "rb") as f:
             report["plugin_sha256"] = hashlib.sha256(f.read()).hexdigest()
         report["plugin_binary"] = binary
