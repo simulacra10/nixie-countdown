@@ -67,7 +67,7 @@ Get the latest version from the [Releases](../../releases) page.
 **Ubuntu 24.04** (with OBS from the official OBS PPA)
 
 ```bash
-sudo apt install ./nixie-countdown-*-ubuntu-24.04-x86_64.deb
+sudo apt install ./nixie-countdown-*-x86_64-linux-gnu.deb
 ```
 
 **Flatpak OBS** (from Flathub)
