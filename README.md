@@ -2,7 +2,14 @@
 
 A countdown timer source that displays the time on photographic Nixie tubes, for Windows, macOS and Linux. See [Tested platforms](#tested-platforms).
 
-This is a third-party plugin for OBS Studio.
+This is a third-party plugin for OBS Studio. It is not made, endorsed or supported by the OBS Project.
+
+**Upgrading from `obs-nixie-countdown`:** the plugin was renamed from `obs-nixie-countdown` to `nixie-countdown`. Remove the old plugin before installing this one, or OBS loads both:
+- **Windows:** delete `C:\ProgramData\obs-studio\plugins\obs-nixie-countdown`.
+- **macOS:** delete `~/Library/Application Support/obs-studio/plugins/obs-nixie-countdown.plugin`.
+- **Linux:** the `.deb` package and `dev-install.sh` remove the old version automatically; otherwise delete `~/.config/obs-studio/plugins/obs-nixie-countdown`.
+
+Your scenes keep working, because the source type didn't change.
 
 ![Nixie Countdown preview](docs/preview.png)
 
@@ -46,7 +53,7 @@ Get the latest version from the [Releases](../../releases) page.
 **Windows**
 
 1. Download the `windows-x64.zip` file.
-2. Extract it into `C:\ProgramData\obs-studio\plugins\`. You should end up with `C:\ProgramData\obs-studio\plugins\obs-nixie-countdown\bin\64bit\obs-nixie-countdown.dll`.
+2. Extract it into `C:\ProgramData\obs-studio\plugins\`. You should end up with `C:\ProgramData\obs-studio\plugins\nixie-countdown\bin\64bit\nixie-countdown.dll`.
 3. Restart OBS.
 
 **macOS**
@@ -58,7 +65,7 @@ Get the latest version from the [Releases](../../releases) page.
 **Ubuntu 24.04** (with OBS from the official OBS PPA)
 
 ```bash
-sudo apt install ./obs-nixie-countdown-*-ubuntu-24.04-x86_64.deb
+sudo apt install ./nixie-countdown-*-ubuntu-24.04-x86_64.deb
 ```
 
 **Other Linux distributions, including Debian**: build from source (see below).
@@ -96,8 +103,8 @@ Based on the official [obs-plugintemplate](https://github.com/obsproject/obs-plu
 **Linux: Debian, Ubuntu, Fedora, Arch and their derivatives (quickest)**
 
 ```bash
-git clone https://github.com/simulacra10/obs-nixie-countdown.git
-cd obs-nixie-countdown
+git clone https://github.com/simulacra10/nixie-countdown.git
+cd nixie-countdown
 ./dev-install.sh --run
 ```
 

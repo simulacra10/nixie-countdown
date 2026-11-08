@@ -38,8 +38,8 @@ import traceback
 import urllib.parse
 import zlib
 
-REPO = "simulacra10/obs-nixie-countdown"
-PLUGIN = "obs-nixie-countdown"
+REPO = "simulacra10/nixie-countdown"
+PLUGIN = "nixie-countdown"
 SOURCE_KIND = "nixie_countdown_source"
 SOURCE_NAME = "Nixie Verify"
 FLATPAK_ID = "com.obsproject.Studio"
@@ -705,6 +705,21 @@ def main():
         check(not missing, "missing in {}: {}".format(data_dir, ", ".join(missing)))
         return "all 11 tube images and the locale file"
 
+    def old_plugin_removed():
+        # The plugin used to be called obs-nixie-countdown. If that is still
+        # installed, OBS loads both and they claim the same source type.
+        old = [p for p in (os.path.join(config_dir, "plugins", "obs-nixie-countdown"),
+                           os.path.join(config_dir, "plugins", "obs-nixie-countdown.plugin"))
+               if os.path.exists(p)]
+        for libdir in ("/usr/lib/x86_64-linux-gnu", "/usr/lib/aarch64-linux-gnu", "/usr/lib64", "/usr/lib",
+                       "/usr/local/lib/x86_64-linux-gnu", "/usr/local/lib64", "/usr/local/lib"):
+            path = os.path.join(libdir, "obs-plugins", "obs-nixie-countdown.so")
+            if os.path.exists(path):
+                old.append(path)
+        check(not old, "remove the old plugin first: " + ", ".join(old))
+        return "not installed"
+
+    step("Old obs-nixie-countdown plugin removed", old_plugin_removed)
     if binary:
         step("Plugin data files installed", data_files)
     if args.expected_sha256 and binary:

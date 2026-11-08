@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: MIT
 set -euo pipefail
 
-REPO="simulacra10/obs-nixie-countdown"
+REPO="simulacra10/nixie-countdown"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLEAN=0
 REF="main"
@@ -170,7 +170,7 @@ else
   DOWNLOADED="$(mktemp -d "${TMPDIR:-/tmp}/nixie-countdown-tests.XXXXXX")"
   info "Downloading $REF (commit ${COMMIT:0:7}) from github.com/$REPO"
   curl -fsSL -A "$AGENT" "https://github.com/$REPO/archive/$COMMIT.tar.gz" | tar -xz -C "$DOWNLOADED"
-  ROOT="$DOWNLOADED/obs-nixie-countdown-$COMMIT"
+  ROOT="$DOWNLOADED/nixie-countdown-$COMMIT"
   [ -f "$ROOT/tests/CMakeLists.txt" ] || fail "The download for '$REF' has no tests folder."
   BUILD="$DOWNLOADED/build"
   VERSION="commit ${COMMIT:0:7} ($REF)"
