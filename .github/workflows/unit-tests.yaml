@@ -128,3 +128,47 @@ jobs:
           echo "$out"
           [ "$code" -eq 2 ] || { echo "expected exit code 2, got $code"; exit 1; }
           echo "$out" | grep -q 'OBS not found' || { echo 'expected the "OBS not found" message'; exit 1; }
+
+  # The Linux scripts on the three big distribution families, each in its own
+  # container: install tools with the distribution's package manager, run the
+  # unit tests, and build and install the plugin.
+  linux-distros:
+    name: Linux Scripts (${{ matrix.name }}) 🐧
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian
+            image: debian:trixie
+          - name: Fedora
+            image: fedora:latest
+          - name: Arch
+            image: archlinux:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # A fresh Arch container has no package database yet; real systems do.
+      - name: Sync the Arch package database
+        if: matrix.name == 'Arch'
+        run: pacman -Sy --noconfirm
+
+      - name: Unit tests with run-tests.sh 🧪
+        run: bash ./run-tests.sh --yes --no-submit
+
+      - name: Build and install the plugin with dev-install.sh 🧱
+        run: bash ./dev-install.sh --yes
+
+      # A tester without the source: run-tests.sh alone downloads this commit.
+      - name: run-tests.sh without the project source 🧪
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          TEST_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p /tmp/alone
+          cp run-tests.sh /tmp/alone/
+          bash /tmp/alone/run-tests.sh --yes --no-submit --ref "$TEST_REF"

@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (17)](nixie-sec-2026-11-07-17.json): no findings
+
+Audit of `run-tests.sh` running without the project source on Linux and macOS, `dev-install.sh` on Fedora and Arch, and the new CI job in Debian, Fedora and Arch containers. Downloads follow the same trusted-commit rule as `run-tests.ps1` (NIXIE-2026-006), and packages are installed only after the user agrees.
+
 ### [2026-11-07 (16)](nixie-sec-2026-11-07-16.json): no findings
 
 Audit of the change that removes the `[Test report]` prefix from report titles. Only fixed text changed.
