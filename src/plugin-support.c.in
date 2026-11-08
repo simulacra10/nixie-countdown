@@ -1,5 +1,5 @@
 /*
-Nixie Countdown for OBS Studio (from obs-plugintemplate)
+Nixie Countdown (from obs-plugintemplate)
 Copyright (C) 2026 DMX Digital
 SPDX-License-Identifier: GPL-2.0-or-later
 

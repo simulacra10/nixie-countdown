@@ -43,7 +43,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
-$Repo = 'simulacra10/obs-nixie-countdown'
+$Repo = 'simulacra10/nixie-countdown'
 $TestExeName = 'test-nixie-logic.exe'
 # In CI there is nobody to answer questions.
 $Interactive = -not $env:CI
@@ -193,7 +193,7 @@ if (Test-Path (Join-Path $PSScriptRoot 'tests\CMakeLists.txt')) {
     Write-Host "  Downloading $Ref (commit $($commit.Substring(0, 7))) from github.com/$Repo"
     Invoke-WebRequest -Uri "https://github.com/$Repo/archive/$commit.zip" -OutFile $zip -UseBasicParsing -UserAgent $agent
     Expand-Archive -Path $zip -DestinationPath $downloaded
-    $root = Join-Path $downloaded "obs-nixie-countdown-$commit"
+    $root = Join-Path $downloaded "nixie-countdown-$commit"
     if (-not (Test-Path (Join-Path $root 'tests\CMakeLists.txt'))) { Stop-Script "The download for '$Ref' has no tests folder." }
     $build = Join-Path $downloaded 'build'
     $version = "commit $($commit.Substring(0, 7)) ($Ref)"

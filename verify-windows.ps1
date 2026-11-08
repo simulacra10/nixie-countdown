@@ -47,8 +47,8 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
 
-$Repo = 'simulacra10/obs-nixie-countdown'
-$PluginName = 'obs-nixie-countdown'
+$Repo = 'simulacra10/nixie-countdown'
+$PluginName = 'nixie-countdown'
 $SourceKind = 'nixie_countdown_source'
 $SourceName = 'Nixie Verify'
 $Stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
@@ -444,6 +444,15 @@ Test-Step 'Plugin DLL installed' {
     "SHA-256 $($report.plugin_dll_sha256)"
 }
 
+# The plugin used to be called obs-nixie-countdown. If that is still
+# installed, OBS loads both and they claim the same source type.
+Test-Step 'Old obs-nixie-countdown plugin removed' {
+    $old = @((Join-Path $env:ProgramData 'obs-studio\plugins\obs-nixie-countdown'),
+        (Join-Path $env:ProgramFiles 'obs-studio\obs-plugins\64bit\obs-nixie-countdown.dll')) | Where-Object { Test-Path $_ }
+    Assert-True (@($old).Count -eq 0) "remove the old plugin first: $($old -join ', ')"
+    'not installed'
+}
+
 Test-Step 'Plugin data files installed' {
     $missing = @()
     foreach ($f in @('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'colon')) {
@@ -760,7 +769,7 @@ if ($log) {
     $lines = @(Get-Content $log.FullName | Where-Object { $_ -match 'nixie' })
     $lines | Set-Content (Join-Path $OutputDir 'obs-log-nixie.txt')
     # Only the plugin's own lines go into the report text, without timestamps.
-    $pluginLogLines = @($lines | Where-Object { $_ -match '\[obs-nixie-countdown\]' } |
+    $pluginLogLines = @($lines | Where-Object { $_ -match '\[nixie-countdown\]' } |
         ForEach-Object { $_ -replace '^\d{2}:\d{2}:\d{2}\.\d{3}:\s*', '' })
 
     Test-Step 'Plugin reports it loaded' {

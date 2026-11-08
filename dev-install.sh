@@ -14,7 +14,7 @@
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAME="obs-nixie-countdown"
+NAME="nixie-countdown"
 BUILD="$SRC/build_x86_64"
 DEST="$HOME/.config/obs-studio/plugins/$NAME"
 CLEAN=0
@@ -127,6 +127,14 @@ count=$(find "$DEST/data/digits" -name '*.png' | wc -l)
 [ "$count" -eq 11 ] || fail "Expected 11 tube images, found $count in $DEST/data/digits"
 [ -f "$DEST/data/locale/en-US.ini" ] || fail "Language file missing in $DEST/data/locale"
 ok "Installed to $DEST"
+
+# The plugin used to be called obs-nixie-countdown. Both would load and claim
+# the same source type, so remove the old folder.
+OLD="$HOME/.config/obs-studio/plugins/obs-nixie-countdown"
+if [ -e "$OLD" ]; then
+  rm -rf "$OLD"
+  ok "Removed the old obs-nixie-countdown plugin folder (the plugin is now called $NAME)"
+fi
 
 if pgrep -x obs >/dev/null; then
   info "OBS is running. Restart it to load the new build."

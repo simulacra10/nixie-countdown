@@ -1,5 +1,5 @@
 /*
-Nixie Countdown for OBS Studio
+Nixie Countdown
 Copyright (c) 2026 DMX Digital
 SPDX-License-Identifier: MIT
 
