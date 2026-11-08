@@ -1,0 +1,45 @@
+# Flatpak extension for the OBS Studio Flatpak (com.obsproject.Studio).
+# Follows the layout of the OBS plugins on Flathub: the plugin is built against
+# the OBS Flatpak itself and installed into /app/plugins/NixieCountdown, whose
+# lib/obs-plugins and share/obs/obs-plugins folders OBS merges into its own.
+#
+# Build locally (from the project root):
+#   flatpak-builder --user --install-deps-from=flathub --install --force-clean \
+#     flatpak-build flatpak/com.obsproject.Studio.Plugin.NixieCountdown.yaml
+#
+# Copyright (c) 2026 DMX Digital
+# SPDX-License-Identifier: MIT
+id: com.obsproject.Studio.Plugin.NixieCountdown
+branch: stable
+runtime: com.obsproject.Studio
+runtime-version: stable
+sdk: org.freedesktop.Sdk//26.08
+build-extension: true
+separate-locales: false
+appstream-compose: false
+build-options:
+  prefix: /app/plugins/NixieCountdown
+
+modules:
+  - name: nixie-countdown
+    buildsystem: simple
+    build-commands:
+      - cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX=${FLATPAK_DEST} -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_PREFIX_PATH=/app -DCMAKE_COMPILE_WARNING_AS_ERROR=OFF
+        -DENABLE_QT=ON -DENABLE_FRONTEND_API=ON
+      - ninja -C build
+      - cmake --install build
+    post-install:
+      - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo
+        flatpak/com.obsproject.Studio.Plugin.NixieCountdown.metainfo.xml
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - .git
+          - .flatpak-builder
+          - flatpak-build
+          - flatpak-repo
+          - build_x86_64
+          - build_tests
+          - release

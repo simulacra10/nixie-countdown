@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-07 (19)](nixie-sec-2026-11-07-19.json): no findings
+
+Audit of the Flatpak package (an extension of the OBS Flatpak that adds no permissions), its CI build and release wiring, and the 1.2.0 version bump.
+
 ### [2026-11-07 (18)](nixie-sec-2026-11-07-18.json): no findings
 
 Audit of the rename from `obs-nixie-countdown` to `nixie-countdown`, following the OBS Project's plugin naming guidelines. Earlier logs keep the old name and URLs as historical records; GitHub redirects the old URLs.
