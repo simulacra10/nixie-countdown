@@ -5,12 +5,17 @@
   <extends>com.obsproject.Studio</extends>
   <name>Nixie Countdown</name>
   <summary>Countdown timer source that shows the time on photographic Nixie tubes</summary>
+  <description>
+    <p>Adds a countdown timer source to OBS Studio that shows the time on photographic Nixie tubes, with Start, Pause and Reset controls, hotkeys and a blink when the countdown reaches zero.</p>
+    <p>The Nixie tube digits are cut from a photograph by DANYK (https://danyk.cz/digitrony_en.html), used with credit under the author's reuse terms (https://danyk.cz/cado_en.html).</p>
+  </description>
   <developer_name>DMX Digital</developer_name>
   <url type="homepage">https://github.com/simulacra10/nixie-countdown</url>
   <url type="bugtracker">https://github.com/simulacra10/nixie-countdown/issues</url>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-or-later AND MIT</project_license>
   <releases>
+    <release version="1.2.1" date="2026-11-08"/>
     <release version="1.2.0" date="2026-11-07"/>
   </releases>
 </component>
