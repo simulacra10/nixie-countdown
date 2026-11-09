@@ -1,0 +1,74 @@
+{
+  "document": {
+    "category": "csaf_informational_advisory",
+    "csaf_version": "2.0",
+    "lang": "en",
+    "title": "Security audit 2026-11-08: Debian 13 package and release 1.2.1",
+    "publisher": {
+      "category": "vendor",
+      "name": "DMX Digital",
+      "namespace": "https://github.com/simulacra10/nixie-countdown"
+    },
+    "distribution": {
+      "tlp": {
+        "label": "WHITE"
+      }
+    },
+    "acknowledgments": [
+      {
+        "names": [
+          "Claude (Anthropic)"
+        ],
+        "summary": "audit of pull request release/1.2.1 before merge, directed by the maintainer"
+      }
+    ],
+    "notes": [
+      {
+        "category": "summary",
+        "title": "Summary",
+        "text": "Audit of the changes for 1.2.1: a Debian 13 .deb built in CI after the maintainer found the 1.2.0 .deb (built for Ubuntu 24.04 with the OBS PPA) would not install on Debian 13; a PACKAGE_DISTRO build option that puts the distribution into package names; the credit fixes from issue #19; version and documentation updates. No security issues found."
+      },
+      {
+        "category": "details",
+        "title": "Audit details",
+        "text": "The Debian job runs in a debian:trixie container with contents: read and a pinned checkout, installs only Debian packages from Debian's repositories, builds with warnings as errors, and installs the resulting package in the throwaway container to prove its dependencies resolve. Values from buildspec.json reach the shell through environment variables. PACKAGE_DISTRO only changes the package file name; the package contents, the Conflicts and Replaces on obs-nixie-countdown, and the install paths are unchanged. The release job attaches the Debian files the same way as the others and still creates a draft. The credit changes are text only (CREDITS.txt and the Flatpak metainfo, validated as XML)."
+      },
+      {
+        "category": "details",
+        "title": "Test evidence",
+        "text": "Built locally on Debian 13 with PACKAGE_DISTRO=debian-13: the package is named nixie-countdown-<version>-debian-13-x86_64.deb, depends on Debian's libobs0t64 and libqt6widgets6 (not Ubuntu's libqt6widgets6t64), and apt-get install -s accepts it."
+      },
+      {
+        "category": "general",
+        "title": "Result",
+        "text": "No findings. Logged as required by the project's audit policy."
+      }
+    ],
+    "references": [
+      {
+        "category": "self",
+        "summary": "This log",
+        "url": "https://github.com/simulacra10/nixie-countdown/blob/main/security-log/nixie-sec-2026-11-08.json"
+      },
+      {
+        "category": "external",
+        "summary": "Credit fixes",
+        "url": "https://github.com/simulacra10/nixie-countdown/issues/19"
+      }
+    ],
+    "tracking": {
+      "id": "NIXIE-SEC-2026-11-08",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-11-08T20:35:11-05:00",
+      "current_release_date": "2026-11-08T20:35:11-05:00",
+      "revision_history": [
+        {
+          "date": "2026-11-08T20:35:11-05:00",
+          "number": "1",
+          "summary": "Initial log of the pull request audit."
+        }
+      ]
+    }
+  }
+}

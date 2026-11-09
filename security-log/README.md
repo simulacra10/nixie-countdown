@@ -6,6 +6,10 @@ File names follow the CSAF rule: the document's tracking ID in lower case, here 
 
 ## Index
 
+### [2026-11-08](nixie-sec-2026-11-08.json): no findings
+
+Audit of release 1.2.1: a Debian 13 `.deb` built and test-installed in a Debian container, distribution names in package file names, and the image credit fixes from #19.
+
 ### [2026-11-07 (19)](nixie-sec-2026-11-07-19.json): no findings
 
 Audit of the Flatpak package (an extension of the OBS Flatpak that adds no permissions), its CI build and release wiring, and the 1.2.0 version bump.

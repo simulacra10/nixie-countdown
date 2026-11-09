@@ -234,14 +234,14 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-${{ matrix.os }}-x86_64-${{ needs.check-event.outputs.commitHash }}
-          path: ${{ github.workspace }}/release/${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-x86_64*.*
+          path: ${{ github.workspace }}/release/${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-ubuntu-24.04-x86_64*.*
 
       - name: Upload debug symbol artifacts 🪲
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ fromJSON(needs.check-event.outputs.package) }}
         with:
           name: ${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-${{ matrix.os }}-x86_64-${{ needs.check-event.outputs.commitHash }}-dbgsym
-          path: ${{ github.workspace }}/release/${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-x86_64*-dbgsym.ddeb
+          path: ${{ github.workspace }}/release/${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-ubuntu-24.04-x86_64*-dbgsym.ddeb
 
       - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         if: github.event_name != 'pull_request' && steps.ccache-cache.outputs.cache-hit != 'true'
@@ -343,3 +343,61 @@ jobs:
         with:
           name: ${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-flatpak-x86_64-${{ needs.check-event.outputs.commitHash }}
           path: ${{ github.workspace }}/release/*.flatpak
+
+  # Debian's OBS and Qt packages differ from Ubuntu's (package names, OBS
+  # version), so Debian gets its own .deb, built in a Debian container
+  # against Debian's own OBS.
+  debian-build:
+    name: Build for Debian 🐧
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    needs: check-event
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install Build Dependencies 🛍️
+        run: |
+          : Install Build Dependencies 🛍️
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends cmake ninja-build gcc g++ pkg-config \
+            libobs-dev qt6-base-dev dpkg-dev file jq git ca-certificates
+
+      - name: Set Up Environment 🔧
+        id: setup
+        run: |
+          : Set Up Environment 🔧
+          read -r product_name product_version <<< \
+            "$(jq -r '. | {name, version} | join(" ")' buildspec.json)"
+          echo "pluginName=${product_name}" >> $GITHUB_OUTPUT
+          echo "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
+
+      - name: Build and Package 📀
+        run: |
+          : Build and Package 📀
+          cmake --preset ubuntu-x86_64 -DPACKAGE_DISTRO=debian-13 -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          cmake --build --preset ubuntu-x86_64
+          cmake --build build_x86_64 -t package
+          ls -la release
+
+      # Installing it proves the dependencies resolve on a clean Debian 13.
+      - name: Install the Package 🔎
+        env:
+          PLUGIN_NAME: ${{ steps.setup.outputs.pluginName }}
+          PLUGIN_VERSION: ${{ steps.setup.outputs.pluginVersion }}
+        run: |
+          : Install the Package 🔎
+          deb="release/${PLUGIN_NAME}-${PLUGIN_VERSION}-debian-13-x86_64.deb"
+          dpkg-deb -f "$deb" Depends
+          apt-get install -y -qq "./$deb"
+          test -f "/usr/lib/x86_64-linux-gnu/obs-plugins/${PLUGIN_NAME}.so"
+          test -f "/usr/share/obs/obs-plugins/${PLUGIN_NAME}/digits/0.png"
+
+      - name: Upload Artifacts 📡
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-debian-13-x86_64-${{ needs.check-event.outputs.commitHash }}
+          # Relative: inside a container job, github.workspace is the host's path.
+          path: release/${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-debian-13-x86_64*.*

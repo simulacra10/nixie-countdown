@@ -5,5 +5,6 @@ The digit images (0.png to 9.png) are cut from a photograph by DANYK:
 Used with credit under the author's reuse terms:
   https://danyk.cz/cado_en.html
 
-These images are not covered by the plugin's GPL license.
+These images are not covered by the plugin's licenses (MIT for the plugin's
+own code, GPL-2.0-or-later for the template code and the built plugin).
 colon.png was generated for this plugin.

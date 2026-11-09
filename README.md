@@ -42,7 +42,8 @@ OBS Studio 31 or newer for the downloadable packages. Building from source also 
 | Windows 10 Pro (CI build) | 33.0.1 | Tested: all automated checks of `verify-windows.ps1` pass ([report](../../issues/10)) |
 | Debian 13, GNOME on Wayland (built from source) | 30.2.3 | Tested: all automated checks of `verify-linux-macos.py` pass ([report](../../issues/12)) |
 | Fedora, Arch | | Builds and unit tests pass in CI; not yet tested in OBS |
-| Ubuntu 24.04 (`.deb`) | | Built by CI; not yet tested |
+| Debian 13 (`.deb`) | 30.x | Built by CI and installed in a Debian 13 container; not yet tested in OBS |
+| Ubuntu 24.04 (`.deb`) | 31+ (OBS PPA) | Built by CI; not yet tested |
 | Flatpak OBS (Flatpak extension) | | Built by CI; not yet tested |
 | macOS | | Built by CI, **not yet tested on a Mac** |
 
@@ -64,11 +65,21 @@ Get the latest version from the [Releases](../../releases) page.
 2. The package is not signed, so macOS will block it the first time. Open System Settings > Privacy & Security and click **Open Anyway**.
 3. Restart OBS.
 
-**Ubuntu 24.04** (with OBS from the official OBS PPA)
+**Debian and Ubuntu**
+
+Each `.deb` only works on the system it was built for, because it depends on that system's own OBS and Qt packages:
+
+| System | OBS | File |
+| --- | --- | --- |
+| Debian 13 | Debian's `obs-studio` package (30.x) | `nixie-countdown-*-debian-13-x86_64.deb` |
+| Ubuntu 24.04 | OBS from the [official OBS PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio) (31 or newer) | `nixie-countdown-*-ubuntu-24.04-x86_64.deb` |
 
 ```bash
-sudo apt install ./nixie-countdown-*-x86_64-linux-gnu.deb
+sudo apt install ./nixie-countdown-*-debian-13-x86_64.deb      # Debian 13
+sudo apt install ./nixie-countdown-*-ubuntu-24.04-x86_64.deb   # Ubuntu 24.04
 ```
+
+On other Debian- or Ubuntu-based systems, build from source (see below).
 
 **Flatpak OBS** (from Flathub)
 
@@ -78,7 +89,7 @@ flatpak install ./nixie-countdown-*-flatpak-x86_64.flatpak
 
 This installs the plugin as an extension of the OBS Flatpak. If you installed OBS with `--user`, add `--user` here too.
 
-**Other Linux distributions, including Debian, Fedora and Arch**: build from source (see below).
+**Other Linux distributions, including Fedora and Arch**: build from source (see below).
 
 ## Usage
 

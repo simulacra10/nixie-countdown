@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+- New Debian 13 package (`debian-13-x86_64.deb`), built against Debian's own OBS. The 1.2.0 `.deb` only works on Ubuntu 24.04 with OBS from the OBS PPA, and failed to install on Debian 13.
+- The Ubuntu package is now named `ubuntu-24.04-x86_64.deb`, so it's clear which system each `.deb` is for.
+- Credits: the image credit notes no longer say the images are covered by the GPL (neither of the plugin's licenses covers them), and the Flatpak metadata now credits DANYK too.
+
 ## 1.2.0
 
 - Renamed from `obs-nixie-countdown` to `nixie-countdown`, following the OBS Project's plugin naming guidelines. The display name and the source type are unchanged, so existing scenes keep working. Remove the old plugin when upgrading (see the README).
