@@ -39,6 +39,11 @@
         "text": "Built locally on Debian 13 with PACKAGE_DISTRO=debian-13: the package is named nixie-countdown-<version>-debian-13-x86_64.deb, depends on Debian's libobs0t64 and libqt6widgets6 (not Ubuntu's libqt6widgets6t64), and apt-get install -s accepts it."
       },
       {
+        "category": "details",
+        "title": "Revision 2",
+        "text": "The first CI run showed the Debian package installed into /usr/local, where Debian's OBS does not look for plugins; the CI install check caught it. The Debian job now passes CMAKE_INSTALL_PREFIX=/usr like the Ubuntu build. Rebuilt locally: the package installs to /usr/lib/x86_64-linux-gnu/obs-plugins and /usr/share/obs/obs-plugins. The PACKAGE_DISTRO naming was restructured to keep CMake lines under 120 characters. No security impact."
+      },
+      {
         "category": "general",
         "title": "Result",
         "text": "No findings. Logged as required by the project's audit policy."
@@ -59,14 +64,19 @@
     "tracking": {
       "id": "NIXIE-SEC-2026-11-08",
       "status": "final",
-      "version": "1",
+      "version": "2",
       "initial_release_date": "2026-11-08T20:35:11-05:00",
-      "current_release_date": "2026-11-08T20:35:11-05:00",
+      "current_release_date": "2026-11-08T20:40:58-05:00",
       "revision_history": [
         {
           "date": "2026-11-08T20:35:11-05:00",
           "number": "1",
           "summary": "Initial log of the pull request audit."
+        },
+        {
+          "date": "2026-11-08T20:40:58-05:00",
+          "number": "2",
+          "summary": "Debian package installs into /usr; CMake formatting."
         }
       ]
     }

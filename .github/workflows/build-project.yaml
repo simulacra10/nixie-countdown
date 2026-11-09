@@ -377,7 +377,9 @@ jobs:
       - name: Build and Package 📀
         run: |
           : Build and Package 📀
-          cmake --preset ubuntu-x86_64 -DPACKAGE_DISTRO=debian-13 -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          # Install into /usr, where Debian's OBS looks for plugins (as the Ubuntu build does).
+          cmake --preset ubuntu-x86_64 -DCMAKE_INSTALL_PREFIX=/usr -DPACKAGE_DISTRO=debian-13 \
+            -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           cmake --build --preset ubuntu-x86_64
           cmake --build build_x86_64 -t package
           ls -la release

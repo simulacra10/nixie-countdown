@@ -18,10 +18,11 @@ set(CPACK_PACKAGE_VERSION "${CMAKE_PROJECT_VERSION}")
 # a package was built for into its name: a .deb only works there, because it
 # depends on that distribution's library packages and OBS version.
 if(PACKAGE_DISTRO)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${PACKAGE_DISTRO}-${CMAKE_SYSTEM_PROCESSOR}")
+  set(_package_suffix "${PACKAGE_DISTRO}-${CMAKE_SYSTEM_PROCESSOR}")
 else()
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_C_LIBRARY_ARCHITECTURE}")
+  set(_package_suffix "${CMAKE_C_LIBRARY_ARCHITECTURE}")
 endif()
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${_package_suffix}")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
